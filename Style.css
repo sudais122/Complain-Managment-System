@@ -1128,18 +1128,46 @@ footer {
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+/* --- THEME VARIABLES --- */
+:root {
+    --bg-body: #f4f6f8;
+    --bg-card: #ffffff;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --primary: #BD2426; /* AWKUM Maroon */
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --overlay-color: rgba(0, 0, 0, 0.6); 
+}
+
+/* Dark Mode Override */
+[data-theme="dark"] {
+    --bg-body: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #ffffff;
+    --text-muted: #b0b0b0;
+    --primary: #ff4d4d;
+    --navbar-bg: rgba(30, 30, 30, 0.95);
+    --shadow: 0 4px 20px rgba(0,0,0,0.5);
+    --overlay-color: rgba(0, 0, 0, 0.8);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+
 body {
-    display: flex;
-    flex-direction: column;
     background-color: var(--bg-body);
-    background-image: url('https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1920&auto=format&fit=crop'); 
+    background-image: url('https://propakistani.pk/wp-content/uploads/2021/06/Abdul-Wali-Khan-university.jpg'); 
     background-size: cover;
     background-position: center;
+    padding-top: 8rem;
     background-attachment: fixed;
-    /* Blend the image with the background color */
     background-blend-mode: overlay; 
     color: var(--text-main);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* --- NAVBAR --- */
@@ -1147,12 +1175,12 @@ body {
     background: var(--navbar-bg);
     backdrop-filter: blur(10px);
     padding: 15px 5%;
-    width: 100vw;
+    width: 100vw; 
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: var(--shadow);
-    position: sticky;
+    position: fixed;
     top: 0;
     z-index: 100;
 }
@@ -1202,38 +1230,29 @@ body {
 
 /* --- DASHBOARD --- */
 .dashboard-container {
-    width: 1200px;
+    width: 100%; 
+    max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
 }
 
-/* Welcome Banner */
-.welcome-banner {
-    background: linear-gradient(135deg, var(--primary), #8a1a1c);
-    color: white;
-    padding: 3rem;
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    box-shadow: 0 10px 30px rgba(189, 36, 38, 0.4);
+.welcome-content h1 { 
+    font-size: 2.2rem; 
+    margin-bottom: 10px; 
+    font-weight: 700;
 }
 
-.welcome-content h1 { font-size: 2rem; margin-bottom: 10px; }
-.wave { display: inline-block; animation: wave 2s infinite; }
-
-.stats-container { display: flex; gap: 20px; }
-.stat-card {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    padding: 15px 30px;
-    border-radius: 12px;
-    text-align: center;
-    min-width: 100px;
+.welcome-content p { 
+    font-size: 1.1rem; 
+    opacity: 0.9; 
+    max-width: 600px; 
+    margin: 0 auto; 
 }
-.stat-card h3 { font-size: 1.8rem; font-weight: 700; }
-.stat-card span { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.wave {
+    display: inline-block;
+    animation: wave 2s infinite; 
+}
 
 .section-heading {
     margin-bottom: 25px;
@@ -1242,11 +1261,9 @@ body {
     border-left: 5px solid var(--primary);
     padding-left: 15px;
 }
-
-/* --- CARD GRID --- */
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
     padding-bottom: 50px;
 }
@@ -1263,9 +1280,10 @@ body {
     background-position: center;
 }
 
-.card:hover { transform: translateY(-8px); }
+.card:hover{
+     transform: translateY(-8px);
+}
 
-/* The dark overlay on top of the image */
 .card-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -1276,54 +1294,205 @@ body {
     align-items: center;
     color: white;
     transition: background 0.3s;
+    padding: 10px; 
+    text-align: center;
 }
 
-.problems{
-    display: flex;
-    flex-direction: column;
-}
 .card:hover .card-overlay {
-    background: rgba(189, 36, 38, 0.85); /* Turn red on hover */
+    background: rgba(189, 36, 38, 0.85);
 }
 
 .card i { font-size: 2.5rem; margin-bottom: 15px; }
 .card h3 { font-size: 1.4rem; font-weight: 600; }
 .card p { font-size: 0.8rem; opacity: 0.8; margin-top: 5px; }
 
-/* Responsive */
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 420px) {
+    #probbody{
+        padding-top: 60rem;
+    }
+}
+@media (max-width: 1024px) {
+    .dashboard-container {
+        padding: 0 15px;
+    }
+}
+/* @media (max-width: 1195px) {
+    body{
+        padding-top: 18rem;
+    }
+}
+@media (max-width: 900px) {
+    body{
+        padding-top: 32rem;
+    }
+} */
 @media (max-width: 768px) {
-    .welcome-banner { flex-direction: column; text-align: center; gap: 20px; }
-    .user-info { display: none; }
+    body{
+        padding-top: 57rem;
+    }
+}
+@media (max-width: 768px) {
+    .navbar {
+        padding: 15px 20px;
+    }
+    
+    .user-info { 
+        display: none; 
+    }
+
+    .brand {
+        font-size: 1.2rem; 
+    }
+    .welcome-banner {
+        padding: 2rem 1rem; 
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-content h1 {
+        font-size: 1.6rem; 
+    }
+
+    .welcome-content p {
+        font-size: 0.95rem;
+    }
+    .category-grid {
+        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(100%, 1fr)); 
+    }
+    
+    .card {
+        height: 160px; 
+    }
 }
 
 @keyframes wave {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(20deg); }
-}/* Updated Welcome Banner (No Stats) */
+}
+
+
+/* --- ANIMATED WELCOME BANNER --- */
 .welcome-banner {
     background: linear-gradient(135deg, var(--primary), #8a1a1c);
     color: white;
-    padding: 3rem;
+    padding: 2rem;
     border-radius: 20px;
     display: flex;
-    justify-content: center; /* Centers the text horizontally */
+    justify-content: center;
     align-items: center;
-    text-align: center;      /* Ensures text lines are centered */
+    text-align: center;
     margin-bottom: 40px;
     box-shadow: 0 10px 30px rgba(189, 36, 38, 0.4);
+    position: relative; 
+    overflow: hidden; 
+}
+
+/* Ensure text stays on top of the floating icons */
+.welcome-content {
+    position: relative;
+    z-index: 2;
 }
 
 .welcome-content h1 {
     font-size: 2.2rem;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-weight: 700;
 }
 
 .welcome-content p {
     font-size: 1.1rem;
     opacity: 0.9;
-    max-width: 600px; /* Keeps the text from getting too wide */
+    max-width: 600px;
     margin: 0 auto;
 }
 
-/* Delete the .stats-container and .stat-card CSS styles as they are no longer needed */
+/* --- FLOATING ICONS ANIMATION --- */
+/* --- FLOATING ICONS ANIMATION --- */
+.floating-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1; 
+    pointer-events: none;
+}
+
+.floating-icons i {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.15); /* Subtle visibility */
+    /* This applies the new 'drift' animation */
+    animation: drift 20s infinite linear alternate;
+}
+
+/* We give each icon a different starting position 
+   AND a different duration so they never look synchronized.
+*/
+
+/* Icon 1: Top Left - Moves slowly */
+.icon-1 { 
+    top: 10%; 
+    left: 5%; 
+    font-size: 3.5rem; 
+    animation-duration: 25s; 
+}
+
+/* Icon 2: Bottom Right - Moves faster */
+.icon-2 { 
+    top: 70%; 
+    left: 85%; 
+    font-size: 3rem; 
+    animation-duration: 18s; 
+    animation-delay: -5s; /* Starts animation mid-way */
+}
+
+/* Icon 3: Center - Very large, moves very slowly */
+.icon-3 { 
+    top: 40%; 
+    left: 45%; 
+    font-size: 5rem; 
+    animation-duration: 30s; 
+    animation-delay: -10s;
+}
+
+/* Icon 4: Bottom Left */
+.icon-4 { 
+    top: 80%; 
+    left: 15%; 
+    font-size: 2.5rem; 
+    animation-duration: 22s; 
+    animation-delay: -2s;
+}
+
+/* Icon 5: Top Right */
+.icon-5 { 
+    top: 15%; 
+    left: 75%; 
+    font-size: 3.5rem; 
+    animation-duration: 20s; 
+    animation-delay: -7s;
+}
+@keyframes drift {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+        transform: translate(80px, -50px) rotate(10deg);
+    }
+    66% {
+        transform: translate(-40px, 40px) rotate(-5deg);
+    }
+    100% {
+        transform: translate(30px, -60px) rotate(5deg);
+    }
+}
+
+/* Hand Wave Animation (Faster as per your request) */
+.wave { display: inline-block; animation: wave 1s infinite; }
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(20deg); }
+}

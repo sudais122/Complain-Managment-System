@@ -7,8 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
+<body id="probbody">
     <nav class="navbar">
         <div class="brand">
             <i class="fas fa-university"></i>
@@ -34,18 +33,27 @@
 
     <div class="dashboard-container">
         
-        <div class="welcome-banner">
-            <div class="welcome-content">
-                <h1>Hello, Student! <span class="wave">👋</span></h1>
-                <p>We are here to help. Select a category below to report an issue.</p>
-            </div>
-        </div>
+<div class="welcome-banner">
+    
+    <div class="floating-icons">
+        <i class="fas fa-book-open icon-1"></i>
+        <i class="fas fa-bus icon-2"></i>
+        <i class="fas fa-graduation-cap icon-3"></i>
+        <i class="fas fa-wifi icon-4"></i>
+        <i class="fas fa-utensils icon-5"></i>
+    </div>
+
+    <div class="welcome-content">
+        <h1>Hello, Student! <span class="wave">👋</span></h1>
+        <p>We are here to help. Select a category below to report an issue.</p>
+    </div>
+</div>
 
         <h3 class="section-heading">Browse Categories</h3>
 
         <div class="category-grid">
             
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Academics')">
+            <div class="card" style="background-image: url('Imges/Department.jpeg');" onclick="goToForm('Academics')">
                 <div class="card-overlay">
                     <i class="fas fa-graduation-cap"></i>
                     <h3>Academics</h3>
