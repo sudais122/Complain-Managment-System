@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body id="probbody">
     <nav class="navbar">
         <div class="brand">
             <i class="fas fa-university"></i>
             FixIt AWKUM
         </div>
-        
+
         <div class="nav-right">
             <button class="theme-btn" id="theme-toggle" title="Switch Theme">
                 <i class="fas fa-moon"></i>
@@ -32,27 +34,27 @@
     </nav>
 
     <div class="dashboard-container">
-        
-<div class="welcome-banner">
-    
-    <div class="floating-icons">
-        <i class="fas fa-book-open icon-1"></i>
-        <i class="fas fa-bus icon-2"></i>
-        <i class="fas fa-graduation-cap icon-3"></i>
-        <i class="fas fa-wifi icon-4"></i>
-        <i class="fas fa-utensils icon-5"></i>
-    </div>
 
-    <div class="welcome-content">
-        <h1>Hello, Student! <span class="wave">👋</span></h1>
-        <p>We are here to help. Select a category below to report an issue.</p>
-    </div>
-</div>
+        <div class="welcome-banner">
+
+            <div class="floating-icons">
+                <i class="fas fa-book-open icon-1"></i>
+                <i class="fas fa-bus icon-2"></i>
+                <i class="fas fa-graduation-cap icon-3"></i>
+                <i class="fas fa-wifi icon-4"></i>
+                <i class="fas fa-utensils icon-5"></i>
+            </div>
+
+            <div class="welcome-content">
+                <h1>Hello, Student! <span class="wave">👋</span></h1>
+                <p>We are here to help. Select a category below to report an issue.</p>
+            </div>
+        </div>
 
         <h3 class="section-heading">Browse Categories</h3>
 
         <div class="category-grid">
-            
+
             <div class="card" style="background-image: url('Imges/Department.jpeg');" onclick="goToForm('Academics')">
                 <div class="card-overlay">
                     <i class="fas fa-graduation-cap"></i>
@@ -61,7 +63,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Hostel')">
+            <div class="card"
+                style="background-image: url('Imges/hostel.jpg');"
+                onclick="goToForm('Hostel')">
                 <div class="card-overlay">
                     <i class="fas fa-bed"></i>
                     <h3>Hostel</h3>
@@ -69,7 +73,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Transport')">
+            <div class="card"
+                style="background-image: url('Imges/transport.jpg');"
+                onclick="goToForm('Transport')">
                 <div class="card-overlay">
                     <i class="fas fa-bus"></i>
                     <h3>Transport</h3>
@@ -77,7 +83,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1565123409695-7428308b9815?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Cafeteria')">
+            <div class="card"
+                style="background-image: url('Imges/cafeteria.jpg');"
+                onclick="goToForm('Cafeteria')">
                 <div class="card-overlay">
                     <i class="fas fa-utensils"></i>
                     <h3>Cafeteria</h3>
@@ -85,7 +93,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('IT Support')">
+            <div class="card"
+                style="background-image: url('Imges/IT.jpg');"
+                onclick="goToForm('IT Support')">
                 <div class="card-overlay">
                     <i class="fas fa-wifi"></i>
                     <h3>IT & Wi-Fi</h3>
@@ -93,7 +103,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Library')">
+            <div class="card"
+                style="background-image: url('Imges/library.jpg');"
+                onclick="goToForm('Library')">
                 <div class="card-overlay">
                     <i class="fas fa-book"></i>
                     <h3>Library</h3>
@@ -101,7 +113,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1581578731117-10d52143b1e8?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Cleanliness')">
+            <div class="card"
+                style="background-image: url('Imges/clean.jpg');"
+                onclick="goToForm('Cleanliness')">
                 <div class="card-overlay">
                     <i class="fas fa-broom"></i>
                     <h3>Cleanliness</h3>
@@ -109,7 +123,9 @@
                 </div>
             </div>
 
-            <div class="card" style="background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=60');" onclick="goToForm('Other')">
+            <div class="card"
+                style="background-image: url('Imges/Others.jpg');"
+                onclick="goToForm('Other')">
                 <div class="card-overlay">
                     <i class="fas fa-comment-dots"></i>
                     <h3>Other</h3>
@@ -121,4 +137,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>

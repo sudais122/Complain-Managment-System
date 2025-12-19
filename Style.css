@@ -1276,8 +1276,12 @@ body {
     cursor: pointer;
     box-shadow: var(--shadow);
     transition: transform 0.3s;
-    background-size: cover;
-    background-position: center;
+    
+    /* ADD THESE FOUR LINES */
+    background-size: cover;       /* Forces the 1280px width to fit the card */
+    background-position: center;  /* Centers the hostel image */
+    background-repeat: no-repeat;
+    display: block;               /* Ensures it renders as a box */
 }
 
 .card:hover{
@@ -1286,8 +1290,12 @@ body {
 
 .card-overlay {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--overlay-color);
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    /* Change 0.6 to 0.3 to make the image more visible */
+    background: rgba(0, 0, 0, 0.3); 
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1296,6 +1304,7 @@ body {
     transition: background 0.3s;
     padding: 10px; 
     text-align: center;
+    z-index: 2;
 }
 
 .card:hover .card-overlay {
