@@ -207,6 +207,7 @@
     </div>
 
 <script>
+    // --- THEME LOGIC ---
     const themeBtn = document.getElementById('theme-btn');
     const body = document.body;
 
@@ -226,6 +227,7 @@
         }
     });
     
+    // --- VIEW SWITCHER ---
     function switchView(viewName, element) {
         if(element) {
             document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
@@ -242,14 +244,14 @@
             filterBar.style.display = 'flex'; 
             tableTitle.innerText = "All Campus Issues";
             actionBtnContainer.innerHTML = `<button onclick="openModal()" style="background: #e74c3c; border-color: #e74c3c; color: white;" class="action-btn">Clear All</button>`;
-            applyFilters(); 
+            loadComplaints('all'); 
         } 
         else if (viewName === 'resolved') {
             statsCards.style.display = 'grid'; 
             filterBar.style.display = 'flex'; 
             tableTitle.innerText = "Resolved Issues Only";
             actionBtnContainer.innerHTML = ``; 
-            applyFilters('resolved_view');
+            loadComplaints('resolved');
         } 
         else if (viewName === 'students') {
             statsCards.style.display = 'none'; 
@@ -260,31 +262,11 @@
         }
     }
 
-    function applyFilters(viewMode = null) {
-        const categoryVal = document.getElementById('category-filter').value;
-        const isResolvedView = viewMode === 'resolved_view' || document.querySelector('.sidebar-menu a[onclick*="resolved"]').classList.contains('active');
-
-        let issues = JSON.parse(localStorage.getItem('awkumComplaints')) || [];
-        
-        const filteredIssues = issues.filter(issue => {
-            const mainCategory = issue.category.split(':')[0].trim(); 
-            const matchesCategory = categoryVal === 'All' || mainCategory === categoryVal;
-            let matchesView = true;
-            if(isResolvedView) {
-                matchesView = (issue.status === 'Resolved');
-            }
-            return matchesCategory && matchesView;
-        });
-
-        renderTable(filteredIssues);
-        updateStats(issues); 
-    }
-
-    function renderTable(data) {
+    // --- 1. LOAD COMPLAINTS FROM SERVER ---
+    async function loadComplaints(viewMode = 'all') {
         const tableHead = document.getElementById('table-head');
         const tableBody = document.getElementById('table-body');
-
-        // NAME COLUMN REMOVED FOR PRIVACY
+        
         tableHead.innerHTML = `
             <tr>
                 <td>Category</td>
@@ -294,19 +276,57 @@
                 <td>Action</td>
             </tr>
         `;
+        tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Loading data from server...</td></tr>";
+
+        try {
+            // FETCH FROM SERVER
+            const response = await fetch('http://localhost:3001/api/complaints');
+            let issues = await response.json();
+            
+            // SORT: Newest First
+            issues.reverse(); 
+
+            // FILTER LOCALLY
+            const categoryVal = document.getElementById('category-filter').value;
+            
+            const filteredIssues = issues.filter(issue => {
+                const mainCategory = issue.category.split(':')[0].trim();
+                const matchesCategory = categoryVal === 'All' || mainCategory === categoryVal;
+                
+                let matchesView = true;
+                if(viewMode === 'resolved') {
+                    matchesView = (issue.status === 'Resolved');
+                }
+                return matchesCategory && matchesView;
+            });
+
+            updateStats(issues); // Update numbers based on ALL data
+            renderTable(filteredIssues);
+
+        } catch (error) {
+            console.error(error);
+            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error connecting to server. Is backend running?</td></tr>";
+        }
+    }
+
+    // --- 2. RENDER TABLE ---
+    function renderTable(data) {
+        const tableBody = document.getElementById('table-body');
 
         if (data.length === 0) {
-            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No records found matching filters.</td></tr>";
+            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No records found.</td></tr>";
             return;
         }
 
         let htmlRows = '';
-        data.slice().reverse().forEach((issue) => {
+        // REMOVED EXTRA REVERSE HERE TO AVOID FLIPPING BACK TO OLD
+        data.forEach((issue) => {
             let btnHTML = '';
             if (issue.status === 'Resolved') {
                 btnHTML = `<button class="action-btn" disabled>Done</button>`;
             } else {
-                btnHTML = `<button class="action-btn" onclick="markAsResolved(${issue.id})">Mark Resolve</button>`;
+                // Pass the specific database ID (_id)
+                btnHTML = `<button class="action-btn" onclick="markAsResolved('${issue._id}')">Mark Resolve</button>`;
             }
 
             const mainCategory = issue.category.split(':')[0].trim();
@@ -328,6 +348,38 @@
         tableBody.innerHTML = htmlRows;
     }
 
+    // --- 3. MARK RESOLVED ON SERVER ---
+    async function markAsResolved(id) {
+        try {
+            await fetch('http://localhost:3001/api/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, status: 'Resolved' })
+            });
+            // Reload table to show changes
+            loadComplaints(); 
+        } catch (error) {
+            alert("Failed to update status");
+        }
+    }
+
+    // --- 4. CLEAR ALL ON SERVER ---
+    async function confirmClear() {
+        try {
+            const response = await fetch('http://localhost:3001/api/complaints', {
+                method: 'DELETE' // Call the DELETE route
+            });
+
+            if (response.ok) {
+                closeModal();
+                loadComplaints(); // Refresh table (it should be empty now)
+                alert("All complaints cleared from database!");
+            }
+        } catch (error) {
+            alert("Failed to clear database.");
+        }
+    }
+
     function updateStats(issues) {
         let total = 0, pending = 0, resolved = 0;
         issues.forEach(i => {
@@ -340,11 +392,12 @@
         document.getElementById('pending-count').innerText = pending;
         document.getElementById('resolved-count').innerText = resolved;
     }
+
+    // --- 5. LOAD STUDENTS ---
     async function loadStudentData() {
         const tableHead = document.getElementById('table-head');
         const tableBody = document.getElementById('table-body');
         
-        // Setup Table Headers
         tableHead.innerHTML = `
             <tr>
                 <td>Student Name</td>
@@ -354,13 +407,14 @@
                 <td>Password</td>
             </tr>
         `;
-
         tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Loading users...</td></tr>";
 
         try {
-            // Fetch users from server
             const response = await fetch('http://localhost:3001/api/users');
             const students = await response.json();
+            
+            // SORT: Newest Student First
+            students.reverse(); 
 
             if (students.length === 0) {
                 tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No registered students yet.</td></tr>";
@@ -379,35 +433,23 @@
                     </tr>
                 `;
             });
-
             tableBody.innerHTML = htmlRows;
-
         } catch (error) {
-            console.error(error);
             tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error connecting to server.</td></tr>";
         }
     }
-    function markAsResolved(id) {
-        let issues = JSON.parse(localStorage.getItem('awkumComplaints'));
-        const issueIndex = issues.findIndex(i => i.id === id);
-        if (issueIndex > -1) {
-            issues[issueIndex].status = 'Resolved';
-            localStorage.setItem('awkumComplaints', JSON.stringify(issues));
-            applyFilters(); 
-        }
+
+    // Apply filters triggers reload
+    function applyFilters() {
+        loadComplaints();
     }
 
     function openModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
 
-    function confirmClear() {
-        localStorage.removeItem('awkumComplaints');
-        applyFilters();
-        closeModal();
-    }
-
+    // Initial Load
     window.onload = function() {
-        applyFilters();
+        loadComplaints();
     };
     
     const menuBtn = document.querySelector('#menu-btn');

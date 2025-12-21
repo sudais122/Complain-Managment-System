@@ -346,13 +346,16 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+if (response.ok) {
                     successBox.innerText = "Account created successfully! Redirecting...";
                     successBox.style.display = 'block';
                     document.getElementById('signupForm').reset();
+                    
+                    // 2000 = 2 seconds. Change to 1000 if you want 1 second.
                     setTimeout(() => {
-                        window.location.href = "UserLogin.html"; // Redirect to login
-                    }, 2000);
+                        window.location.href = "UserLogin.html"; 
+                    }, 3000); 
+                    
                 } else {
                     errorBox.innerText = result.error || "Registration failed.";
                     errorBox.style.display = 'block';

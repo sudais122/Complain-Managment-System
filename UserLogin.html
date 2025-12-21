@@ -4,176 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AWKUM Voice</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
-        :root {
-            --primary-color: #BD2426; /* AWKUM Maroon */
-            --primary-dark: #8a1a1c;
-            --admin-color: #2c3e50;
-            --text-dark: #333;
-            --bg-color: #f0f2f5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: var(--bg-color);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-container {
-            background: #fff;
-            width: 850px;
-            height: 500px;
-            display: flex;
-            border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        /* Left Side (Branding) */
-        .login-header {
-            flex: 1;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .logo-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-
+        :root { --primary-color: #BD2426; --primary-dark: #8a1a1c; --bg-color: #f0f2f5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-color); height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .login-container { background: #fff; width: 850px; height: 500px; display: flex; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .login-header { flex: 1; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; }
         .login-header h2 { font-size: 2rem; margin-bottom: 10px; }
-        .login-header p { font-size: 0.9rem; opacity: 0.8; }
-
-        /* Right Side (Form) */
-        .login-form {
-            flex: 1.2;
-            padding: 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .login-form h3 { color: var(--text-dark); margin-bottom: 5px; font-size: 1.8rem; }
-        .text-muted { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
-
-        /* Inputs */
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .input-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #888;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px 15px 12px 45px; /* space for icon */
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .input-group input:focus {
-            border-color: var(--primary-color);
-        }
-
-        /* Options (Remember me) */
-        .options {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: #555;
-            margin-bottom: 25px;
-        }
-
-        .options a { color: var(--primary-color); text-decoration: none; }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 10px; /* Space between buttons */
-        }
-
-        .btn {
-            padding: 7px 1rem 8px 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: white;
-            transition: transform 0.2s, opacity 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .btn-student { background-color: var(--primary-color); }
-        .btn-admin { background-color: var(--admin-color); }
-
-        .footer-text { margin-top: 20px; font-size: 0.8rem; text-align: center; }
-        .footer-text a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
-
-        /* --- NEW: Error Message Style --- */
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #f5c6cb;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
-            display: none; /* Hidden by default */
-            text-align: center;
-        }
-        .button-group a{
-            text-decoration: none;
-        }
-        .login-header div{
-            width: 120px;
-            height: 120px;
-            background-color: rgb(255, 255, 255);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-        }
-        .login-header img{
-            margin-top: 10px;
-            width: 80px;
-            border-radius: 10%;
-            height: 80px;
-        }
-        @media (max-width: 768px) {
-            .login-container { flex-direction: column; width: 90%; height: auto; }
-            .login-header { padding: 30px; }
-            .login-form { padding: 30px; }
-        }
+        .login-form { flex: 1.2; padding: 50px; display: flex; flex-direction: column; justify-content: center; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+        .input-group input { width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border 0.3s; }
+        .input-group input:focus { border-color: var(--primary-color); }
+        .btn-student { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.2s; }
+        .btn-student:hover { opacity: 0.9; }
+        .error-message { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; margin-bottom: 20px; display: none; text-align: center; }
+        .login-header div { width: 120px; height: 120px; background-color: white; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+        .login-header img { width: 80px; height: 80px; border-radius: 10%; }
+        @media (max-width: 768px) { .login-container { flex-direction: column; width: 90%; height: auto; } }
     </style>
 </head>
 <body>
@@ -184,105 +35,85 @@
             <p>Empowering students to solve campus problems.</p>
         </div>
 
-<div class="login-form">
-    <h3>Welcome Back</h3>
-    <p class="text-muted">Please enter your credentials</p>
-    
-    <div id="error-box" class="error-message" style="display: none; color: #BD2426; margin-bottom: 10px;">
-        </div>
+        <div class="login-form">
+            <h3>Welcome Back</h3>
+            <p style="color:#888; margin-bottom: 30px;">Please enter your credentials</p>
+            
+            <div id="error-box" class="error-message"></div>
 
-    <form id="authForm" onsubmit="return false;">
-        <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="text" id="email" placeholder="Email" required>
-        </div>
-        
-        <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="password" placeholder="Password" required>
-        </div>
+            <form onsubmit="return false;">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="text" id="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="button" class="btn-student" onclick="handleLogin()">Login</button>
+            </form>
 
-        <div class="options">
-            <label><input type="checkbox"> Remember me</label>
-            <a href="forgetpass.html">Forgot Password?</a>
+            <div style="margin-top: 20px; text-align: center; font-size: 0.8rem;">
+                <p>Not registered? <a href="Signup.html" style="color: #BD2426; text-decoration: none; font-weight: bold;">Create an Account</a></p>
+            </div>
         </div>
-        
-        <div class="button-group">
-            <button type="button" class="btn btn-student" onclick="handleLogin()">Login</button>
-        </div>
-    </form>
-
-    <div class="footer-text">
-        <p>Not registered? <a href="Signup.html">Create an Account</a></p>
-    </div>
-</div>
     </div>
 
-<script>
-    async function handleLogin() {
-        const emailField = document.getElementById('email');
-        const passField = document.getElementById('password');
-        const errorBox = document.getElementById('error-box');
-        const btn = document.querySelector('.btn-student');
+    <script>
+        async function handleLogin() {
+            const emailField = document.getElementById('email');
+            const passField = document.getElementById('password');
+            const errorBox = document.getElementById('error-box');
+            const btn = document.querySelector('.btn-student');
 
-        const email = emailField.value.trim();
-        const password = passField.value.trim();
+            const email = emailField.value.trim();
+            const password = passField.value.trim();
 
-        // Reset UI
-        errorBox.style.display = 'none';
-        emailField.style.borderColor = '#ddd';
-        passField.style.borderColor = '#ddd';
-        btn.innerText = "Checking...";
-        btn.disabled = true;
+            errorBox.style.display = 'none';
+            btn.innerText = "Checking...";
+            btn.disabled = true;
 
-        if (!email || !password) {
-            showError("Please fill in all fields.");
-            btn.innerText = "Login";
-            btn.disabled = false;
-            return;
-        }
+            if (!email || !password) {
+                errorBox.innerHTML = 'Please fill in all fields.';
+                errorBox.style.display = 'block';
+                btn.innerText = "Login";
+                btn.disabled = false;
+                return;
+            }
 
-        try {
-            // SEND REQUEST TO SERVER (Port 3001)
-            const response = await fetch('http://localhost:3001/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+            try {
+                // SEND TO SERVER (Port 3001)
+                const response = await fetch('http://localhost:3001/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (response.ok) {
-                // SUCCESS
-                btn.innerText = "Success!";
-                btn.style.background = "#28a745";
-                
-                // Save user info locally so other pages know who is logged in
-                localStorage.setItem('currentUser', JSON.stringify(result.user));
-
-                setTimeout(() => {
-                    window.location.href = "Problems.html"; // Go to Dashboard
-                }, 1000);
-            } else {
-                // WRONG PASSWORD / EMAIL
-                showError(result.error || "Invalid Credentials");
+                if (response.ok) {
+                    btn.innerText = "Success!";
+                    btn.style.background = "#28a745";
+                    
+                    // SAVE USER INFO & REDIRECT
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    setTimeout(() => {
+                        window.location.href = "Problems.html"; // Redirect to Dashboard
+                    }, 1000);
+                } else {
+                    errorBox.innerText = result.error || "Invalid Credentials";
+                    errorBox.style.display = 'block';
+                    btn.innerText = "Login";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                errorBox.innerText = 'Cannot connect to server.';
+                errorBox.style.display = 'block';
                 btn.innerText = "Login";
                 btn.disabled = false;
             }
-
-        } catch (error) {
-            console.error(error);
-            showError("Cannot connect to server. Is the backend running?");
-            btn.innerText = "Login";
-            btn.disabled = false;
         }
-    }
-
-    function showError(msg) {
-        const errorBox = document.getElementById('error-box');
-        errorBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
-        errorBox.style.display = 'block';
-    }
-</script>
+    </script>
 </body>
 </html>

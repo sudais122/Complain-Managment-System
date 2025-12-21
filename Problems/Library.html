@@ -294,112 +294,142 @@
     <footer>
         <p>&copy; 2025 FixIt AWKUM | Built for the Students of Mardan</p>
     </footer>
+<script>
+        // --- 1. AUTHENTICATION CHECK ---
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        
+        // If not logged in, go back to Login page
+        if (!user) {
+            window.location.href = "UserLogin.html";
+        }
 
-    <script>
-        // --- 1. DARK MODE LOGIC ---
+        // --- 2. DARK MODE LOGIC ---
         const themeBtn = document.getElementById('theme-btn');
         const body = document.body;
 
         if(localStorage.getItem('theme') === 'dark') {
             body.classList.add('dark-mode');
-            themeBtn.classList.replace('fa-moon', 'fa-sun');
+            if(themeBtn) themeBtn.classList.replace('fa-moon', 'fa-sun');
         }
 
-        themeBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            if(body.classList.contains('dark-mode')) {
-                themeBtn.classList.replace('fa-moon', 'fa-sun');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                themeBtn.classList.replace('fa-sun', 'fa-moon');
-                localStorage.setItem('theme', 'light');
-            }
-        });
+        if(themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if(body.classList.contains('dark-mode')) {
+                    themeBtn.classList.replace('fa-moon', 'fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    themeBtn.classList.replace('fa-sun', 'fa-moon');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
 
-        // --- 2. LOAD FEED LOGIC ---
+        // --- 3. LOAD FEED FROM SERVER ---
         document.addEventListener('DOMContentLoaded', loadFeed);
 
-        // --- 3. SAVE ISSUE LOGIC ---
-        document.getElementById('issueForm').addEventListener('submit', function(e) {
+        // --- 4. SUBMIT TO SERVER (BACKEND) ---
+        document.getElementById('issueForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Get values
-            const subCategory = document.getElementById('category').value;
-            const location = document.getElementById('location').value;
-            const desc = document.getElementById('desc').value;
-            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.innerText = "Sending...";
+            submitBtn.disabled = true;
 
-            // FORCE 'Library' PREFIX
+            // Get Form Data
+            const subCategory = document.getElementById('category').value; 
+            const location = document.getElementById('location').value;
+            const rawDesc = document.getElementById('desc').value;
+
+            // LIBRARY SPECIFIC PREFIX
             const formattedCategory = `Library: ${subCategory}`;
 
-            const newComplaint = {
-                id: Date.now(),
-                category: formattedCategory, 
-                location: location,
-                description: desc,
-                status: "Pending",
-                date: new Date().toLocaleDateString(),
-                time: currentTime 
-            };
+            // Prepare Data for Server
+            const formData = new FormData();
+            formData.append('email', user.email); // Link complaint to logged-in user
+            formData.append('category', formattedCategory);
+            formData.append('location', location);
+            formData.append('description', rawDesc);
 
-            let complaints = JSON.parse(localStorage.getItem('awkumComplaints')) || [];
-            complaints.push(newComplaint);
-            localStorage.setItem('awkumComplaints', JSON.stringify(complaints));
+            try {
+                // SEND TO PORT 3001
+                const response = await fetch('http://localhost:3001/api/submit', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            document.getElementById('issueForm').reset();
-            loadFeed(); 
-        });
-
-        // --- 4. RENDER LIST LOGIC ---
-        function loadFeed() {
-            const feedContainer = document.getElementById('feed-container');
-            const complaints = JSON.parse(localStorage.getItem('awkumComplaints')) || [];
-            
-            feedContainer.innerHTML = "";
-
-            // FILTER: ONLY SHOW LIBRARY ISSUES
-            const libIssues = complaints.filter(issue => issue.category.startsWith('Library'));
-
-            if (libIssues.length === 0) {
-                feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No reports yet. Be the first!</p>";
-                adjustFeedHeight();
-                return;
+                if (response.ok) {
+                    alert("✅ Report Submitted Successfully!");
+                    document.getElementById('issueForm').reset();
+                    loadFeed(); // Refresh list from server
+                } else {
+                    alert("❌ Failed to submit. Server error.");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("❌ Cannot connect to server. Is it running?");
             }
 
-            libIssues.slice().reverse().forEach(issue => {
-                let tagClass = 'other';
-                // If starts with Library, make it teal
-                if(issue.category.startsWith('Library')) {
-                    tagClass = 'library';
+            submitBtn.innerText = "Submit Report";
+            submitBtn.disabled = false;
+        });
+
+        // --- 5. RENDER LIST FROM SERVER ---
+        async function loadFeed() {
+            const feedContainer = document.getElementById('feed-container');
+            feedContainer.innerHTML = "<p style='text-align:center;'>Loading reports...</p>";
+
+            try {
+                // Fetch ALL complaints from database
+                const response = await fetch(`http://localhost:3001/api/my-complaints?email=${user.email}`);
+                const allComplaints = await response.json();
+
+                // FILTER: Show only Library issues
+                const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('Library'));
+
+                feedContainer.innerHTML = "";
+
+                if (filteredIssues.length === 0) {
+                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No library reports found.</p>";
+                    adjustFeedHeight();
+                    return;
                 }
-                
-                const timeDisplay = issue.time ? ` at ${issue.time}` : "";
 
-                const cardHTML = `
-                    <div class="issue-card">
-                        <div class="tag ${tagClass}">${issue.category}</div>
-                        <h3>${issue.location}</h3>
-                        <p>${issue.description}</p>
-                        <div class="meta">
-                            <span><i class="fas fa-clock"></i> ${issue.date}${timeDisplay}</span>
-                            <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
+                // Display Filtered Issues
+                filteredIssues.forEach(issue => {
+                    // Create formatted Date/Time
+                    const dateObj = new Date(issue.date);
+                    const dateStr = dateObj.toLocaleDateString();
+                    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    const cardHTML = `
+                        <div class="issue-card">
+                            <div class="tag library">${issue.category}</div>
+                            <h3>${issue.location}</h3>
+                            <p>${issue.description}</p>
+                            <div class="meta">
+                                <span><i class="fas fa-clock"></i> ${dateStr} at ${timeStr}</span>
+                                <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
+                            </div>
                         </div>
-                    </div>
-                `;
-                feedContainer.innerHTML += cardHTML;
-            });
+                    `;
+                    feedContainer.innerHTML += cardHTML;
+                });
+                
+                adjustFeedHeight();
 
-            // Adjust height after content loads
-            adjustFeedHeight();
+            } catch (error) {
+                console.error(error);
+                feedContainer.innerHTML = "<p style='color:red; text-align:center;'>Error loading data. Is Server running?</p>";
+            }
         }
 
-        // --- 5. HEIGHT ADJUSTMENT LOGIC (SCROLLBAR) ---
+        // --- 6. HEIGHT ADJUSTMENT LOGIC ---
         function adjustFeedHeight() {
             const formWrapper = document.querySelector('.form-wrapper');
             const feedContainer = document.getElementById('feed-container');
             const listHeaderHeight = 50; 
-
-            // Only on Desktop (> 768px)
+            
             if (window.innerWidth > 768 && formWrapper && feedContainer) {
                 const formHeight = formWrapper.offsetHeight;
                 const maxListHeight = formHeight - listHeaderHeight;
@@ -410,7 +440,6 @@
         }
 
         window.addEventListener('resize', adjustFeedHeight);
-
     </script>
 </body>
 </html>
