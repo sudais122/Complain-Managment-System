@@ -6,17 +6,13 @@
     <title>FixIt AWKUM - Student Problem Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* --- GLOBAL VARIABLES --- */
         :root {
-            /* Official AWKUM Brand Colors approx */
-            --primary: #BD2426;   /* Deep Red */
-            --dark: #404040;      /* Dark Grey */
+            --primary: #BD2426;   
+            --dark: #404040;      
             --light: #f4f4f4;
             --white: #ffffff;
             --accent: #e74c3c;
         }
-
-        /* --- GLOBAL STYLES --- */
         * {
             margin: 0;
             padding: 0;
@@ -27,7 +23,6 @@
         body {
             background-color: var(--light);
             color: #333;
-            /* Do NOT add display:flex here, it breaks the scroll */
         }
 
         /* --- HEADER --- */
@@ -92,8 +87,6 @@
             font-weight: bold;
             border-radius: 25px;
         }
-
-        /* --- CONTAINER --- */
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -168,7 +161,6 @@
         .form-wrapper h2{
             color: white;
         }
-        /* Tag Colors */
         .tag.transport { background-color: #f39c12; }
         .tag.hostel { background-color: #3498db; }
         .tag.academic { background-color: #8e44ad; }
@@ -188,100 +180,6 @@
         .status { font-weight: bold; }
         .status.pending { color: #e67e22; }
         .status.resolved { color: #27ae60; }
-
-        /* --- CHAT BOARD STYLES --- */
-        .chat-wrapper {
-            flex: 1;
-            min-width: 300px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            height: 500px; /* Fixed height for chat */
-            overflow: hidden;
-            margin-top: 20px; /* Spacing if wrapped */
-        }
-
-        .chat-header {
-            background-color: var(--dark);
-            color: white;
-            padding: 15px;
-            border-bottom: 3px solid var(--primary);
-        }
-        .chat-header h3 { margin: 0; font-size: 1.1rem; }
-        .chat-header p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
-
-        .chat-box {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* Message Bubbles */
-        .message {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .bot-message {
-            background-color: #e0e0e0;
-            color: #333;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-
-        .user-message {
-            background-color: var(--primary);
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-
-        .contact-highlight {
-            display: block;
-            margin-top: 5px;
-            font-weight: bold;
-            color: var(--primary);
-            background: white;
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input {
-            display: flex;
-            padding: 10px;
-            background: white;
-            border-top: 1px solid #ddd;
-        }
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-            margin-right: 10px;
-        }
-        .chat-input button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .chat-input button:hover { background-color: #a01e20; }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -493,6 +391,6 @@
             chatBox.appendChild(msgDiv);
         }
     </script>
-
+    <script src="script.js"></script>
 </body>
 </html>

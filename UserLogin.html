@@ -154,6 +154,21 @@
         .button-group a{
             text-decoration: none;
         }
+        .login-header div{
+            width: 120px;
+            height: 120px;
+            background-color: rgb(255, 255, 255);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+        .login-header img{
+            margin-top: 10px;
+            width: 80px;
+            border-radius: 10%;
+            height: 80px;
+        }
         @media (max-width: 768px) {
             .login-container { flex-direction: column; width: 90%; height: auto; }
             .login-header { padding: 30px; }
@@ -164,7 +179,7 @@
 <body>
     <div class="login-container">  
         <div class="login-header">
-            <i class="fas fa-university logo-icon"></i>
+            <div><img src="Imges/Logo.jpeg" alt=""></div>
             <h2>FixIt AWKUM</h2>
             <p>Empowering students to solve campus problems.</p>
         </div>
