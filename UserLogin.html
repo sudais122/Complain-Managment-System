@@ -219,40 +219,69 @@
     </div>
 
 <script>
-    function handleLogin() {
-        // 1. Get elements
+    async function handleLogin() {
         const emailField = document.getElementById('email');
         const passField = document.getElementById('password');
         const errorBox = document.getElementById('error-box');
+        const btn = document.querySelector('.btn-student');
 
         const email = emailField.value.trim();
         const password = passField.value.trim();
 
-        // 2. Hide error box initially (reset styles)
+        // Reset UI
         errorBox.style.display = 'none';
         emailField.style.borderColor = '#ddd';
         passField.style.borderColor = '#ddd';
+        btn.innerText = "Checking...";
+        btn.disabled = true;
 
-        // 3. Simple Check if Empty
-        if (email === "" || password === "") {
-            errorBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please fill in all fields.';
-            errorBox.style.display = 'block';
-            return; // Stop here
+        if (!email || !password) {
+            showError("Please fill in all fields.");
+            btn.innerText = "Login";
+            btn.disabled = false;
+            return;
         }
 
-        // 4. Validate Credentials
-        if (email === 'student' && password === 'student123') {
-            // SUCCESS: Redirect to the next page
-            window.location.href = "Problems.html"; 
-        } else {
-            // FAILURE: Show error message
-            errorBox.innerHTML = '<i class="fas fa-times-circle"></i> Incorrect username or password.';
-            errorBox.style.display = 'block';
-            
-            // Highlight borders in red
-            emailField.style.borderColor = '#BD2426';
-            passField.style.borderColor = '#BD2426';
+        try {
+            // SEND REQUEST TO SERVER (Port 3001)
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // SUCCESS
+                btn.innerText = "Success!";
+                btn.style.background = "#28a745";
+                
+                // Save user info locally so other pages know who is logged in
+                localStorage.setItem('currentUser', JSON.stringify(result.user));
+
+                setTimeout(() => {
+                    window.location.href = "Problems.html"; // Go to Dashboard
+                }, 1000);
+            } else {
+                // WRONG PASSWORD / EMAIL
+                showError(result.error || "Invalid Credentials");
+                btn.innerText = "Login";
+                btn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error(error);
+            showError("Cannot connect to server. Is the backend running?");
+            btn.innerText = "Login";
+            btn.disabled = false;
         }
+    }
+
+    function showError(msg) {
+        const errorBox = document.getElementById('error-box');
+        errorBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+        errorBox.style.display = 'block';
     }
 </script>
 </body>

@@ -359,7 +359,7 @@
 
         try {
             // Fetch users from server
-            const response = await fetch('http://localhost:5000/api/users');
+            const response = await fetch('http://localhost:3001/api/users');
             const students = await response.json();
 
             if (students.length === 0) {

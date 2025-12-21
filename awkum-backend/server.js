@@ -1,25 +1,20 @@
 const express = require('express');
-const Datastore = require('nedb-promises'); // Local Database tool
+const Datastore = require('nedb-promises');
 const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
 
-// 1. SETUP
-app.use(cors()); // Allow the HTML page to talk to this server
-app.use(express.json()); // Allow reading the data sent from the form
+app.use(cors());
+app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// 2. DATABASES
-// Create/Load the 'users.db' file for accounts
 const usersDb = Datastore.create({ filename: 'users.db', autoload: true });
-// Create/Load the 'complaints.db' file for reports
 const complaintsDb = Datastore.create({ filename: 'complaints.db', autoload: true });
 
 console.log("✅ Local Databases Connected!");
 
-// 3. IMAGE STORAGE
 const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
@@ -29,42 +24,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- ROUTES ---
-
-// 1. REGISTER USER (This fixes your error!)
 app.post('/api/register', async (req, res) => {
     try {
-        console.log("Received Registration Request:", req.body); // Debugging line
-
+        console.log("Received Registration:", req.body);
         const { fullname, regNo, department, email, password } = req.body;
-
-        // Check if user already exists
         const existingUser = await usersDb.findOne({ $or: [{ email: email }, { regNo: regNo }] });
-        if (existingUser) {
-            return res.status(400).json({ error: "User with this Email or Reg No already exists." });
-        }
+        if (existingUser) return res.status(400).json({ error: "User already exists." });
 
-        const newUser = {
-            fullname,
-            regNo,
-            department,
-            email,
-            password, 
-            role: "Student",
-            joined: new Date()
-        };
-
+        const newUser = { fullname, regNo, department, email, password, role: "Student", joined: new Date() };
         await usersDb.insert(newUser);
         res.json({ message: "Registration Successful!" });
-        console.log("✅ New User Saved:", fullname);
-
     } catch (error) {
-        console.error("Registration Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// 2. GET ALL USERS (For Admin Panel)
 app.get('/api/users', async (req, res) => {
     try {
         const users = await usersDb.find({ role: "Student" }).sort({ joined: -1 });
@@ -74,7 +48,6 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// 3. SUBMIT COMPLAINT
 app.post('/api/submit', upload.single('image'), async (req, res) => {
     try {
         const imagePath = req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null;
@@ -93,7 +66,6 @@ app.post('/api/submit', upload.single('image'), async (req, res) => {
     }
 });
 
-// 4. GET COMPLAINTS
 app.get('/api/complaints', async (req, res) => {
     try {
         const complaints = await complaintsDb.find({}).sort({ date: -1 });
@@ -103,7 +75,6 @@ app.get('/api/complaints', async (req, res) => {
     }
 });
 
-// 5. UPDATE STATUS
 app.post('/api/update-status', async (req, res) => {
     try {
         const { id, status } = req.body;
@@ -114,7 +85,6 @@ app.post('/api/update-status', async (req, res) => {
     }
 });
 
-// START SERVER
-app.listen(5000, () => {
-    console.log("🚀 Server running at http://localhost:5000");
-}); 
+app.listen(3001, () => {
+    console.log("🚀 Server running at http://localhost:3001");
+});
