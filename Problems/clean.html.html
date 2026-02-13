@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transport Issues</title>
+    <title>General Issues</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -173,7 +173,7 @@
         .action-btn{ color: white; }
         .form-wrapper h2{ color: var(--dark); } 
 
-        .tag.transport { background-color: #f39c12; } /* Orange/Yellow for Transport */
+        .tag.general { background-color: #57606f; } /* Dark Slate Gray for General */
         .tag.other { background-color: #95a5a6; }
 
         .issue-card h3 { font-size: 1.1rem; margin-bottom: 5px; }
@@ -250,32 +250,32 @@
     </header>
 
     <section class="hero">
-        <h1>Transport & Bus Issues</h1>
-        <p>Facing late buses, route issues, driver behavior, overcrowding, or vehicle problems? Report it anonymously.</p>
+        <h1>General Issues</h1>
+        <p>Report any issues not covered in specific sections, including facilities, staff, or services.</p>
         <a href="#report" class="cta-button">File a Complaint Now</a>
     </section>
 
     <div class="container" id="report">
         
         <div class="form-wrapper">
-            <h2><i class="fas fa-bullhorn"></i> Report a Transport Issue</h2>
+            <h2><i class="fas fa-bullhorn"></i> Report General Issue</h2>
             <form id="issueForm">
                 <div class="input-group">
                     <label>Category</label>
                     <select id="category" required>
                         <option value="">Select Category...</option>
-                        <option value="Late Arrival">Late Arrival</option>
-                        <option value="Overcrowding">Overcrowding</option>
-                        <option value="Driver Behavior">Driver Behavior</option>
-                        <option value="Vehicle Condition">Vehicle Condition</option>
-                        <option value="Route Issue">Route Issue</option>
-                        <option value="Bus Pass">Bus Pass Issue</option>
+                        <option value="Water Supply">Water Supply</option>
+                        <option value="Electricity Issue">Electricity Issue</option>
+                        <option value="Room Maintenance">Room Maintenance</option>
+                        <option value="Cleanliness">Cleanliness</option>
+                        <option value="Security Concern">Security Concern</option>
+                        <option value="Admin Issue">Administration Issue</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>Route / Location (e.g., Mardan Route, Bus 5)</label>
-                    <input type="text" id="location" placeholder="Which route or bus?" required>
+                    <label>Location (e.g., Garden Campus, Dept of CS)</label>
+                    <input type="text" id="location" placeholder="Where is the problem?" required>
                 </div>
                 <div class="input-group">
                     <label>Description</label>
@@ -286,7 +286,7 @@
         </div>
 
         <div class="issues-list">
-            <h2>Recent Transport Reports</h2>
+            <h2>Recent General Reports</h2>
             <div id="feed-container"></div>
         </div>
     </div>
@@ -342,8 +342,8 @@
             const location = document.getElementById('location').value;
             const rawDesc = document.getElementById('desc').value;
 
-            // TRANSPORT SPECIFIC PREFIX
-            const formattedCategory = `Transport: ${subCategory}`;
+            // GENERAL SPECIFIC PREFIX
+            const formattedCategory = `General: ${subCategory}`;
 
             // Prepare Data for Server
             const formData = new FormData();
@@ -385,13 +385,13 @@
                 const response = await fetch(`http://localhost:3001/api/my-complaints?email=${user.email}`);
                 const allComplaints = await response.json();
 
-                // FILTER: Show only Transport issues
-                const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('Transport'));
+                // FILTER: Show only General issues
+                const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('General'));
 
                 feedContainer.innerHTML = "";
 
                 if (filteredIssues.length === 0) {
-                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No transport reports found.</p>";
+                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No general reports found.</p>";
                     adjustFeedHeight();
                     return;
                 }
@@ -405,7 +405,7 @@
 
                     const cardHTML = `
                         <div class="issue-card">
-                            <div class="tag transport">${issue.category}</div>
+                            <div class="tag general">${issue.category}</div>
                             <h3>${issue.location}</h3>
                             <p>${issue.description}</p>
                             <div class="meta">

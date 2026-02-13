@@ -44,17 +44,14 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'khansb17798@gmail.com', 
-        pass: 'gurcekyqlynffxaj', // ⚠️ Make sure this App Password is correct!
+        pass: 'dthmlytdvcsnsxgz', 
     }
 });
 
 function normalizeEmail(email) {
     return String(email).toLowerCase().trim();
 }
-
-// ==========================================
 //                 ROUTES
-// ==========================================
 
 // --- 1. SEND REGISTRATION OTP ---
 app.post('/api/send-otp', async (req, res) => {
@@ -74,10 +71,10 @@ app.post('/api/send-otp', async (req, res) => {
         // Generate Code
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Save to Store (Expires in 1 Minute)
+        // Save to Store (Expires in 5 Minute)
         otpStore[normalizedEmail] = {
             code: code,
-            expires: Date.now() + 1 * 60 * 1000 
+            expires: Date.now() + 5 * 60 * 1000 
         };
 
         console.log(`   Generated Code: ${code}`);
