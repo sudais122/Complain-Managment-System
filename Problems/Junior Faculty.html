@@ -265,11 +265,11 @@
                 <select id="category" required>
                     <option value="">Select Lecturer / Visiting Staff</option>   
                     <optgroup label="Permanent Lecturers">
-                        <option value="Aftab Ahmed Khan">Mr. Aftab Ahmed Khan (Lecturer)</option>
-                        <option value="Shahzad">Mr. Shahzad (Lecturer)</option>
-                        <option value="N. Azim">Mr. Nazia Azim (Lecturer)</option>
-                        <option value="Roohullah Syed">Mr. Roohullah Syed (Lecturer)</option>
-                        <option value="Amir Akbar">Mr. Amir Akbar (Lecturer)</option>
+                        <option value="Aftab Ahmed Khan">Mr. Aftab Ahmed Khan</option>
+                        <option value="Shahzad">Mr. Shahzad</option>
+                        <option value="N. Azim">Mr. Nazia Azim</option>
+                        <option value="Roohullah Syed">Mr. Roohullah Syed</option>
+                        <option value="Amir Akbar">Mr. Amir Akbar</option>
                     </optgroup>
                     <optgroup label="Visiting Faculty">
                         <option value="Visiting Faculty Member">Visiting Faculty (Not listed above)</option>
@@ -297,7 +297,8 @@
             </form>
         </div>
         <div class="issues-list">
-            <h2>Recent Cafeteria Reports</h2>
+            <h2>Recent Junior Faculty Reports
+</h2>
             <div id="feed-container"></div>
         </div>
     </div>
@@ -305,151 +306,138 @@
         <p>&copy; 2026 FixIt AWKUM | Built for the Students of Department of Computer Science</p>
     </footer>
 <script>
-        // --- 1. AUTHENTICATION CHECK ---
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        
-        // If not logged in, go back to Login page
-        if (!user) {
-            window.location.href = "UserLogin.html";
-        }
+    // --- 1. AUTHENTICATION CHECK ---
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+        window.location.href = "UserLogin.html";
+    }
 
-        // --- 2. DARK MODE LOGIC ---
-        const themeBtn = document.getElementById('theme-btn');
-        const body = document.body;
+    // --- 2. DARK MODE LOGIC ---
+    const themeBtn = document.getElementById('theme-btn');
+    const body = document.body;
 
-        if(localStorage.getItem('theme') === 'dark') {
-            body.classList.add('dark-mode');
-            if(themeBtn) themeBtn.classList.replace('fa-moon', 'fa-sun');
-        }
+    if(localStorage.getItem('theme') === 'dark') {
+        body.classList.add('dark-mode');
+        if(themeBtn) themeBtn.classList.replace('fa-moon', 'fa-sun');
+    }
 
-        if(themeBtn) {
-            themeBtn.addEventListener('click', () => {
-                body.classList.toggle('dark-mode');
-                if(body.classList.contains('dark-mode')) {
-                    themeBtn.classList.replace('fa-moon', 'fa-sun');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    themeBtn.classList.replace('fa-sun', 'fa-moon');
-                    localStorage.setItem('theme', 'light');
-                }
-            });
-        }
-
-        // --- 3. LOAD FEED FROM SERVER ---
-        document.addEventListener('DOMContentLoaded', loadFeed);
-
-        // --- 4. SUBMIT TO SERVER (BACKEND) ---
-        document.getElementById('issueForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.innerText = "Sending...";
-            submitBtn.disabled = true;
-
-            // Get Form Data
-            const subCategory = document.getElementById('category').value; 
-            const location = document.getElementById('location').value;
-            const rawDesc = document.getElementById('desc').value;
-
-            // CAFETERIA SPECIFIC PREFIX
-            const formattedCategory = `Cafeteria: ${subCategory}`;
-
-            // Prepare Data for Server
-            const formData = new FormData();
-            formData.append('email', user.email); // Link complaint to logged-in user
-            formData.append('category', formattedCategory);
-            formData.append('location', location);
-            formData.append('description', rawDesc);
-
-            try {
-                // SEND TO PORT 3001
-                const response = await fetch('http://localhost:3001/api/submit', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    alert("✅ Report Submitted Successfully!");
-                    document.getElementById('issueForm').reset();
-                    loadFeed(); // Refresh list from server
-                } else {
-                    alert("❌ Failed to submit. Server error.");
-                }
-            } catch (error) {
-                console.error(error);
-                alert("❌ Cannot connect to server. Is it running?");
-            }
-
-            submitBtn.innerText = "Submit Report";
-            submitBtn.disabled = false;
+    if(themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+            themeBtn.classList.toggle('fa-moon');
+            themeBtn.classList.toggle('fa-sun');
         });
+    }
 
-        // --- 5. RENDER LIST FROM SERVER ---
-        async function loadFeed() {
-            const feedContainer = document.getElementById('feed-container');
-            feedContainer.innerHTML = "<p style='text-align:center;'>Loading reports...</p>";
+    // --- 3. INITIAL LOAD ---
+    document.addEventListener('DOMContentLoaded', loadFeed);
 
-            try {
-                // Fetch ALL complaints from database
-                const response = await fetch(`http://localhost:3001/api/my-complaints?email=${user.email}`);;
-                const allComplaints = await response.json();
+    // --- 4. SUBMIT TO SERVER ---
+    document.getElementById('issueForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.querySelector('.submit-btn');
+        const teacherName = document.getElementById('category').value; 
+        
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = "Sending...";
+        submitBtn.disabled = true;
 
-                // FILTER: Show only Cafeteria issues
-                const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('Cafeteria'));
+        const payload = {
+            fullname: user.fullname,
+            email: user.email,
+            regNo: user.regNo,
+            category: `Junior Faculty: ${teacherName}`,
+            location: document.getElementById('nature').value,
+            description: document.getElementById('desc').value,
+            date: new Date().toISOString()
+        };
 
-                feedContainer.innerHTML = "";
+        try {
+            const response = await fetch('http://localhost:3001/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (filteredIssues.length === 0) {
-                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No cafeteria reports found.</p>";
-                    adjustFeedHeight();
-                    return;
-                }
-
-                // Display Filtered Issues
-                filteredIssues.forEach(issue => {
-                    // Create formatted Date/Time
-                    const dateObj = new Date(issue.date);
-                    const dateStr = dateObj.toLocaleDateString();
-                    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    const cardHTML = `
-                        <div class="issue-card">
-                            <div class="tag cafeteria">${issue.category}</div>
-                            <h3>${issue.location}</h3>
-                            <p>${issue.description}</p>
-                            <div class="meta">
-                                <span><i class="fas fa-clock"></i> ${dateStr} at ${timeStr}</span>
-                                <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
-                            </div>
-                        </div>
-                    `;
-                    feedContainer.innerHTML += cardHTML;
-                });
-                
-                adjustFeedHeight();
-
-            } catch (error) {
-                console.error(error);
-                feedContainer.innerHTML = "<p style='color:red; text-align:center;'>Error loading data. Is Server running?</p>";
-            }
-        }
-
-        // --- 6. HEIGHT ADJUSTMENT LOGIC ---
-        function adjustFeedHeight() {
-            const formWrapper = document.querySelector('.form-wrapper');
-            const feedContainer = document.getElementById('feed-container');
-            const listHeaderHeight = 50; 
-            
-            if (window.innerWidth > 768 && formWrapper && feedContainer) {
-                const formHeight = formWrapper.offsetHeight;
-                const maxListHeight = formHeight - listHeaderHeight;
-                feedContainer.style.maxHeight = maxListHeight + "px";
+            if (response.ok) {
+                const result = await response.json();
+                alert(`✅ Report Submitted! ID: #${result.complaintId}`);
+                document.getElementById('issueForm').reset();
+                await loadFeed(); // REFRESH THE SIDE BOX
             } else {
-                feedContainer.style.maxHeight = "none";
+                alert("❌ Server Error. Please try again.");
             }
+        } catch (error) {
+            console.error(error);
+            alert("❌ Connection failed. Is the server running?");
+        } finally {
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
         }
+    });
 
-        window.addEventListener('resize', adjustFeedHeight);
-    </script>
+    // --- 5. RENDER LIST (SIDE BOX) ---
+    async function loadFeed() {
+        const feedContainer = document.getElementById('feed-container');
+        feedContainer.innerHTML = "<p style='text-align:center;'>Loading your reports...</p>";
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/my-complaints?email=${user.email}`);
+            const allComplaints = await response.json();
+            const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('Junior Faculty'));
+
+            feedContainer.innerHTML = "";
+
+            if (filteredIssues.length === 0) {
+                feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No reports filed yet.</p>";
+                return;
+            }
+
+            filteredIssues.reverse().forEach(issue => {
+                const dateObj = new Date(issue.date);
+                const dateStr = dateObj.toLocaleDateString();
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                const cardHTML = `
+                    <div class="issue-card" style="animation: fadeIn 0.5s ease;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span class="tag cafeteria">${issue.category}</span>
+                        </div>
+                        <h3 style="margin-top:5px;">${issue.location}</h3>
+                        <p style="margin-bottom:15px; padding-bottom:10px;">${issue.description}</p>
+                        <div class="meta">
+                            <span><i class="fas fa-clock"></i> ${dateStr} at ${timeStr}</span>
+                            <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
+                        </div>
+                    </div>
+                `;
+                feedContainer.innerHTML += cardHTML;
+            });
+            
+            adjustFeedHeight();
+
+        } catch (error) {
+            console.error(error);
+            feedContainer.innerHTML = "<p style='color:red; text-align:center;'>Error loading data.</p>";
+        }
+    }
+
+    // --- 6. UI ADJUSTMENTS ---
+    function adjustFeedHeight() {
+        const formWrapper = document.querySelector('.form-wrapper');
+        const feedContainer = document.getElementById('feed-container');
+        
+        if (window.innerWidth > 768 && formWrapper && feedContainer) {
+            const formHeight = formWrapper.offsetHeight;
+            feedContainer.style.maxHeight = (formHeight - 60) + "px";
+        } else {
+            feedContainer.style.maxHeight = "none";
+        }
+    }
+
+    window.addEventListener('resize', adjustFeedHeight);
+</script>
 </body>
 </html>

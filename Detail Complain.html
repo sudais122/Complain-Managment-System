@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review & Forward | Admin Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #BD2426; --dark: #1e293b; --bg: #f8fafc; --white: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: #334155; padding: 40px; }
+
+        .container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+        
+        /* Left Column: Complaint Details */
+        .card { background: var(--white); border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .badge { background: #fee2e2; color: var(--primary); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; }
+        
+        .section-title { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .data-point { margin-bottom: 20px; font-size: 1.1rem; font-weight: 500; }
+        .description-box { background: #f1f5f9; padding: 15px; border-radius: 8px; line-height: 1.6; font-size: 0.95rem; }
+
+        /* Right Column: Forwarding Panel */
+        .action-panel { background: var(--dark); color: white; border-radius: 12px; padding: 30px; height: fit-content; position: sticky; top: 40px; }
+        .action-panel h2 { font-size: 1.25rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; margin-bottom: 8px; color: #cbd5e1; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: none; border-radius: 6px; background: #334155; color: white; margin-bottom: 10px; }
+        
+        .btn-forward { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-forward:hover { background: #a01e20; }
+        .btn-forward:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .back-link { display: inline-block; margin-bottom: 20px; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <a href="admin.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h2>Complaint Review</h2>
+                <span class="badge" id="display-id">ID: #00000</span>
+            </div>
+
+            <span class="section-title">Against Faculty/Category</span>
+            <p class="data-point" id="display-category">---</p>
+
+            <span class="section-title">Issue Nature</span>
+            <p class="data-point" id="display-nature">---</p>
+
+            <span class="section-title">Detailed Description</span>
+            <div class="description-box" id="display-desc">
+                Loading description...
+            </div>
+        </div>
+
+        <div class="action-panel">
+            <h2><i class="fas fa-paper-plane"></i> Forward Case</h2>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px;">
+                This will send an official email to the faculty member with all details attached.
+            </p>
+
+            <div class="input-group">
+                <label>Teacher/Staff Email</label>
+                <input type="email" id="teacher-email" placeholder="dr.name@awkum.edu.pk">
+            </div>
+
+            <div class="input-group">
+                <label>Admin Note (Optional)</label>
+                <textarea id="admin-note" rows="3" placeholder="Add a direct instruction to the teacher..."></textarea>
+            </div>
+
+            <button class="btn-forward" id="forward-btn" onclick="processForwarding()">
+                <i class="fas fa-envelope"></i> Send Official Forward
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Get ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const dbId = params.get('id');
+        let complaintData = null;
+
+        // 2. Fetch complaint data
+        async function fetchDetails() {
+            try {
+                const response = await fetch(`http://localhost:3001/api/complaints/${dbId}`);
+                complaintData = await response.json();
+
+                document.getElementById('display-id').innerText = `ID: #${complaintData.complaintId}`;
+                document.getElementById('display-name').innerText = complaintData.fullname;
+                document.getElementById('display-reg').innerText = complaintData.regNo;
+                document.getElementById('display-category').innerText = complaintData.category;
+                document.getElementById('display-nature').innerText = complaintData.location;
+                document.getElementById('display-desc').innerText = complaintData.description;
+            } catch (err) {
+                alert("Error loading complaint data.");
+            }
+        }
+
+        // 3. Forward Logic
+        async function processForwarding() {
+            const email = document.getElementById('teacher-email').value;
+            const note = document.getElementById('admin-note').value;
+            const btn = document.getElementById('forward-btn');
+
+            if(!email) return alert("Please enter the teacher's email address.");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                const res = await fetch('http://localhost:3001/api/forward-complaint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        teacherEmail: email,
+                        adminNote: note,
+                        complaintData: complaintData
+                    })
+                });
+
+                if(res.ok) {
+                    alert("✅ Forwarded Successfully! A record has been sent to the teacher.");
+                    window.location.href = "admin.html";
+                } else {
+                    alert("❌ Failed to forward. Check server connection.");
+                    btn.disabled = false;
+                    btn.innerText = "Send Official Forward";
+                }
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = fetchDetails;
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostel Issues</title>
+    <title>Technical Stop Complaint</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -108,7 +108,7 @@
             height: fit-content; /* Critical for calculating height */
         }
 
-        .form-wrapper h2 { margin-bottom: 20px; color: var(--dark); }
+        .form-wrapper h2 { margin-bottom: 20px; color: var(--dark);display: flex;gap: 10px; }
 
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
@@ -250,33 +250,39 @@
     </header>
 
     <section class="hero">
-        <h1>Hostel Related Issues</h1>
-        <p>Facing problems like water shortage, electricity failure, cleanliness, or mess issues? Report your hostel concern anonymously.</p>
+        <h1>Technical Stop Complaint Portal</h1>
+        <p>Formal reporting for professional conduct and administrative efficiency regarding Lab Assistants and Clerks</p>
         <a href="#report" class="cta-button">File a Complaint Now</a>
     </section>
 
     <div class="container" id="report">
         
         <div class="form-wrapper">
-            <h2><i class="fas fa-bullhorn"></i> Report Hostel Issue</h2>
+            <h2><i class="fas fa-bullhorn"></i>Submit Official Complaint</h2>
             <form id="issueForm">
+<div class="input-group">
+    <label>Select Clerk/Lab Assistant</label>
+    <select id="category" required>
+        <option value="">-- Choose Person --</option>
+        <optgroup label="Lab Assistant">
+            <option value="Mr. Aftab Ahmed Khan">Mr.Sadam(CS lab 1)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Ahmad(CS lab 2)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Tanveer(CS lab 3)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Ali khan(CS lab 4)</option>
+            <option value="other">other</option>
+        </optgroup>
+        <optgroup label="Clerks">
+            <option value="Shaukat">Shaukat</option>
+            <option value="Shah Nawaz">Shah Nawaz</option>
+            <option value="Mir Wali">Mir Wali</option>
+            <option value="Rafi ullah">Rafi ullah</option>
+            <option value="other">other</option>
+        </optgroup>
+    </select>
+</div>
                 <div class="input-group">
-                    <label>Category</label>
-                    <select id="category" required>
-                        <option value="">Select Category...</option>
-                        <option value="Water Supply">Water Supply</option>
-                        <option value="Electricity Issue">Electricity Issue</option>
-                        <option value="Room Maintenance">Room Maintenance</option>
-                        <option value="Cleanliness">Cleanliness</option>
-                        <option value="Mess Food Quality">Mess / Food Quality</option>
-                        <option value="Internet Issue">Internet / Wi-Fi</option>
-                        <option value="Security Concern">Security Concern</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Location (e.g., Boys Hostel A, Room 102)</label>
-                    <input type="text" id="location" placeholder="Where is the problem?" required>
+                    <label>Nature of Problem </label>
+                    <input type="text" name="" id="">
                 </div>
                 <div class="input-group">
                     <label>Description</label>
@@ -287,7 +293,7 @@
         </div>
 
         <div class="issues-list">
-            <h2>Recent Hostel Reports</h2>
+            <h2>Technical Stop Reports</h2>
             <div id="feed-container"></div>
         </div>
     </div>

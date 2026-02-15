@@ -1,16 +1,16 @@
 const express = require('express');
 const Datastore = require('nedb-promises');
-const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 
 const app = express();
+const saltRounds = 10;
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
 // --- 1. DATABASE SETUP ---
 const usersDb = Datastore.create({ 
@@ -23,23 +23,11 @@ const complaintsDb = Datastore.create({
     autoload: true 
 });
 
-console.log("✅ Local Databases Connected!");
+// --- 2. STORAGE ---
+const otpStore = {}; 
+const passwordResetStore = {}; 
 
-// --- 2. UPLOAD SETUP ---
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => cb(null, file.originalname) 
-});
-const upload = multer({ storage: storage });
-
-// --- 3. OTP STORAGE ---
-const otpStore = {}; // For Registration
-const passwordResetStore = {}; // For Password Reset
-
-// --- 4. EMAIL CONFIGURATION ---
+// --- 3. EMAIL CONFIGURATION ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -51,298 +39,281 @@ const transporter = nodemailer.createTransport({
 function normalizeEmail(email) {
     return String(email).toLowerCase().trim();
 }
-//                 ROUTES
 
-// --- 1. SEND REGISTRATION OTP ---
+// --- ROUTES ---
+
+// 1. SEND REGISTRATION OTP
 app.post('/api/send-otp', async (req, res) => {
     try {
         const { email, fullname } = req.body;
         const normalizedEmail = normalizeEmail(email);
-        
-        console.log(`\n🔹 [REGISTRATION] OTP Request for: ${normalizedEmail}`);
-
-        // Check if user already exists
         const existingUser = await usersDb.findOne({ email: normalizedEmail });
-        if (existingUser) {
-            console.log(`❌ [REGISTRATION] Failed: Email ${normalizedEmail} already exists.`);
-            return res.status(400).json({ error: "Email is already registered! Login instead." });
-        }
+        if (existingUser) return res.status(400).json({ error: "Email already registered!" });
 
-        // Generate Code
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Save to Store (Expires in 5 Minute)
-        otpStore[normalizedEmail] = {
-            code: code,
-            expires: Date.now() + 5 * 60 * 1000 
-        };
+        otpStore[normalizedEmail] = { code: code, expires: Date.now() + 5 * 60 * 1000 };
 
-        console.log(`   Generated Code: ${code}`);
-
-        const mailOptions = {
+        transporter.sendMail({
             from: '"FixIt Security" <khansb17798@gmail.com>',
             to: normalizedEmail,
-            subject: 'Verify Your Email - FixIt AWKUM',
-            html: `
-                <div style="font-family: Arial; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #BD2426;">Verify Your Email</h2>
-                    <p>Hi ${fullname},</p>
-                    <p>Use the code below to verify your account:</p>
-                    <h1 style="background: #eee; display: inline-block; padding: 10px 20px; letter-spacing: 5px;">${code}</h1>
-                    <p><strong>This code expires in 1 minute.</strong></p>
-                </div>
-            `
-        };
-
-        transporter.sendMail(mailOptions, (error) => {
-            if (error) {
-                console.error("❌ [EMAIL ERROR]:", error);
-                return res.status(500).json({ error: "Could not send email. Check server console." });
-            }
-            console.log("✅ [REGISTRATION] Email Sent Successfully");
-            res.json({ message: "OTP Sent Successfully" });
+            subject: 'Verify Your Email',
+            html: `<h2>Your code is: ${code}</h2>`
+        }, (err) => {
+            if (err) return res.status(500).json({ error: "Email failed" });
+            res.json({ message: "OTP Sent" });
         });
-
-    } catch (error) {
-        console.error("❌ Server Error:", error);
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// --- 2. FINALIZE REGISTRATION ---
+// 2. REGISTER
 app.post('/api/register', async (req, res) => {
     try {
         const { fullname, regNo, department, email, password, otp } = req.body;
         const normalizedEmail = normalizeEmail(email);
-        const normalizedOtp = String(otp).trim();
-        
-        console.log(`\nFinalizing account for: ${normalizedEmail}`);
+        const stored = otpStore[normalizedEmail];
 
-        const storedOtpData = otpStore[normalizedEmail];
-
-        // Validation
-        if (!storedOtpData) {
-            console.log("❌ OTP Not Found (Expired or never requested)");
-            return res.status(400).json({ error: "Session expired. Please sign up again." });
-        }
-        if (Date.now() > storedOtpData.expires) {
-            console.log("❌ OTP Expired");
-            return res.status(400).json({ error: "OTP has expired." });
-        }
-        if (storedOtpData.code !== normalizedOtp) {
-            console.log(`❌ Invalid OTP. Entered: ${normalizedOtp}, Expected: ${storedOtpData.code}`);
-            return res.status(400).json({ error: "Invalid OTP code." });
+        if (!stored || stored.code !== String(otp).trim()) {
+            return res.status(400).json({ error: "Invalid OTP" });
         }
 
-        // Double check user existence
-        const existingUser = await usersDb.findOne({ $or: [{ email: normalizedEmail }, { regNo: regNo }] });
-        if (existingUser) {
-            console.log("❌ User already in DB");
-            return res.status(400).json({ error: "User already exists." });
-        }
-
-        // Create User
-        const newUser = { 
-            fullname, regNo, department, email: normalizedEmail, password, 
-            role: "Student", joined: new Date().toLocaleString(), createdAt: Date.now() 
-        };
-        
-        await usersDb.insert(newUser);
-        delete otpStore[normalizedEmail]; // Clear OTP
-
-        console.log("Success! New user added to DB.");
-        res.json({ message: "Registration Successful!" });
-    } catch (error) {
-        console.error("❌ Registration Error:", error);
-        res.status(500).json({ error: error.message });
-    }
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        await usersDb.insert({ 
+            fullname, regNo, department, email: normalizedEmail, 
+            password: hashedPassword, role: "Student", joined: new Date().toLocaleString() 
+        });
+        delete otpStore[normalizedEmail];
+        res.json({ message: "Success" });
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// --- 3. LOGIN ---
+// 3. LOGIN
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const normalizedEmail = normalizeEmail(email);
-        console.log(`\n🔹 [LOGIN] Attempt for: ${normalizedEmail}`);
 
-        const user = await usersDb.findOne({ email: normalizedEmail, password: password });
-        
-        if (user) {
-            console.log("✅ [LOGIN] Success");
-            res.json({ message: "Login Successful", user: user });
-        } else {
-            console.log("❌ [LOGIN] Failed: Invalid Credentials");
-            res.status(401).json({ error: "Invalid Credentials" });
+        // 1. Basic Validation
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
         }
+
+        // 2. Consistent Normalization
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        // DEBUG LOG: See what's happening in your terminal
+        console.log(`Login attempt for: ${normalizedEmail}`);
+
+        // 3. Find User
+        const user = await usersDb.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            console.log("Result: User not found in database.");
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        // 4. Compare Password
+        const isMatch = await bcrypt.compare(password, user.password);
+        
+        if (!isMatch) {
+            console.log("Result: Password does not match.");
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        // 5. Success
+        console.log(`Result: Success! Logging in ${user.fullname}`);
+        res.json({ 
+            message: "Login Successful", 
+            user: { 
+                fullname: user.fullname, 
+                regNo: user.regNo, 
+                email: user.email 
+            } 
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("CRITICAL LOGIN ERROR:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
-// --- 4. FORGOT PASSWORD REQUEST ---
+// 4. FORGOT PASSWORD 
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
         const normalizedEmail = normalizeEmail(email);
-
-        console.log(`\n🔹 [FORGOT PASSWORD] Request for: ${normalizedEmail}`);
-
         const user = await usersDb.findOne({ email: normalizedEmail });
-        if (!user) {
-            console.log("❌ Email not found in DB");
-            return res.status(404).json({ error: "No account found with this email." });
-        }
+
+        if (!user) return res.status(404).json({ error: "Email not found" });
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        passwordResetStore[normalizedEmail] = {
-            code: code,
-            expires: Date.now() + 1 * 60 * 1000 // 1 Minute
-        };
+        passwordResetStore[normalizedEmail] = { code, expires: Date.now() + 10 * 60 * 1000 };
 
-        console.log(`   Generated Reset Code: ${code}`);
-
-        const mailOptions = {
-            from: '"FixIt Security" <khansb17798@gmail.com>',
+        transporter.sendMail({
+            from: '"FixIt Security"',
             to: normalizedEmail,
-            subject: 'Reset Your Password - FixIt AWKUM',
-            html: `
-                <div style="font-family: Arial; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #BD2426;">Reset Your Password</h2>
-                    <p>Hi ${user.fullname},</p>
-                    <p>Use the code below to reset your password:</p>
-                    <h1 style="background: #eee; display: inline-block; padding: 10px 20px; letter-spacing: 5px;">${code}</h1>
-                    <p><strong>Expires in 1 minute.</strong></p>
-                </div>
-            `
-        };
-
-        transporter.sendMail(mailOptions, (error) => {
-            if (error) {
-                console.error("❌ [EMAIL ERROR]:", error);
-                return res.status(500).json({ error: "Failed to send email." });
-            }
-            console.log("✅ [FORGOT PASSWORD] Email Sent Successfully");
-            res.json({ message: "Reset code sent." });
+            subject: 'Password Reset Code',
+            html: `<h1>${code}</h1>`
+        }, (err) => {
+            if (err) return res.status(500).json({ error: "Email failed" });
+            res.json({ message: "Reset code sent" });
         });
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { res.status(500).json({ error: "Server Error" }); }
 });
 
-// --- 5. RESET PASSWORD FINALIZE ---
+// 5. RESET PASSWORD
 app.post('/api/reset-password', async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
         const normalizedEmail = normalizeEmail(email);
-        const normalizedOtp = String(otp).trim();
-
-        console.log(`\n🔹 [RESET PASSWORD] Attempt for: ${normalizedEmail}`);
-
         const record = passwordResetStore[normalizedEmail];
 
-        if (!record) {
-            console.log("❌ No reset request found");
-            return res.status(400).json({ error: "No reset request found. Try again." });
-        }
-        if (Date.now() > record.expires) {
-            console.log("❌ Reset Code Expired");
-            delete passwordResetStore[normalizedEmail];
-            return res.status(400).json({ error: "Code expired. Request a new one." });
-        }
-        if (record.code !== normalizedOtp) {
-            console.log("❌ Invalid Reset Code");
-            return res.status(400).json({ error: "Invalid Code." });
+        if (!record || record.code !== String(otp).trim()) {
+            return res.status(400).json({ error: "Invalid OTP" });
         }
 
-        // Update Password
-        await usersDb.update(
-            { email: normalizedEmail }, 
-            { $set: { password: newPassword } }
-        );
-
+        const hashed = await bcrypt.hash(newPassword, saltRounds);
+        await usersDb.update({ email: normalizedEmail }, { $set: { password: hashed } });
         delete passwordResetStore[normalizedEmail];
-        console.log("✅ [RESET PASSWORD] Success! Database updated.");
-        res.json({ message: "Password updated successfully!" });
-
-    } catch (error) {
-        console.error("Reset Error:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// --- 6. OTHER ROUTES (Complaints, Admin) ---
-
-app.post('/api/submit', upload.single('image'), async (req, res) => {
-    try {
-        const imagePath = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : null;
-        const newComplaint = {
-            email: normalizeEmail(req.body.email),
-            category: req.body.category, location: req.body.location,
-            description: req.body.description, imagePath: imagePath, status: "Pending",
-            date: new Date().toLocaleString(),
-        };
-        const doc = await complaintsDb.insert(newComplaint); 
-        console.log("✅ New Complaint Submitted");
-        res.json({ message: "Complaint Saved!", data: doc });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        res.json({ message: "Password updated" });
+    } catch (error) { res.status(500).json({ error: "Server Error" }); }
 });
 
 app.get('/api/my-complaints', async (req, res) => {
     try {
         const userEmail = normalizeEmail(req.query.email);
+        if (!userEmail) return res.status(400).json({ error: "Email is required" });
+
+        // Find complaints only for this specific user
         const myIssues = await complaintsDb.find({ email: userEmail }).sort({ date: -1 });
         res.json(myIssues);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) { 
+        res.status(500).json({ error: "Failed to fetch complaints" }); 
+    }
 });
 
+// --- UPDATE YOUR COMPLAINT POST ROUTE ---
+app.post('/api/report-issue', async (req, res) => {
+    try {
+        const { fullname, email, category, location, description } = req.body;
+        
+        const newComplaint = {
+            fullname,
+            email: normalizeEmail(email),
+            category,
+            location,
+            description,
+            status: "Pending",
+            date: new Date().toLocaleString(),
+            createdAt: Date.now()
+        };
+
+        const result = await complaintsDb.insert(newComplaint);
+        res.json({ message: "Complaint submitted successfully!", id: result._id });
+    } catch (error) {
+        res.status(500).json({ error: "Database error" });
+    }
+});
+// --- NEW SUBMIT ROUTE ---
+app.post('/api/submit', async (req, res) => {
+    try {
+        const { fullname, email, regNo, category, location, description } = req.body;
+
+        // Generate Unique 5-Digit ID
+        let isUnique = false;
+        let complaintId;
+        while (!isUnique) {
+            complaintId = Math.floor(10000 + Math.random() * 90000).toString();
+            const existing = await complaintsDb.findOne({ complaintId: complaintId });
+            if (!existing) isUnique = true;
+        }
+
+        const newComplaint = {
+            complaintId, 
+            fullname,
+            email: email.toLowerCase().trim(),
+            regNo,
+            category,
+            location,     
+            description,
+            status: "Pending",
+            date: new Date().toISOString(),
+            createdAt: Date.now()
+        };
+
+        const saved = await complaintsDb.insert(newComplaint);
+        res.json({ message: "Success", complaintId: saved.complaintId });
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 app.get('/api/complaints', async (req, res) => {
     try {
-        const complaints = await complaintsDb.find({}).sort({ date: -1 });
+        // Fetch all complaints, sorted by newest first
+        const complaints = await complaintsDb.find({}).sort({ createdAt: -1 });
         res.json(complaints);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch complaints" });
+    }
 });
 
+// view and forward route
+app.post('/api/forward-complaint', async (req, res) => {
+    const { teacherEmail, adminNote, complaintData } = req.body;
+
+    const mailOptions = {
+        from: '"FixIt AWKUM Administration" <your-email@gmail.com>',
+        to: teacherEmail,
+        subject: `URGENT: Faculty Complaint Forwarded [#${complaintData.complaintId}]`,
+        html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <div style="background-color: #BD2426; color: white; padding: 20px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 20px;">FixIt AWKUM Official Notice</h1>
+                </div>
+                <div style="padding: 25px; color: #334155;">
+                    <p>Dear Faculty Member,</p>
+                    <p>The following student complaint has been officially forwarded to you by the Department Administration for review and resolution.</p>
+                    
+                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <p><strong>Complaint ID:</strong> #${complaintData.complaintId}</p>
+                        <p><strong>Issue:</strong> ${complaintData.location}</p>
+                        <p><strong>Description:</strong> ${complaintData.description}</p>
+                    </div>
+
+                    ${adminNote ? `
+                    <div style="border-left: 4px solid #BD2426; padding-left: 15px; margin: 20px 0;">
+                        <p><strong>Administrative Note:</strong><br>${adminNote}</p>
+                    </div>` : ''}
+
+                    <p style="font-size: 13px; color: #64748b; margin-top: 30px;">
+                        Please acknowledge receipt of this complaint and provide an update to the Chairman's office once addressed.
+                    </p>
+                </div>
+            </div>
+        `
+    };
+
+    transporter.sendMail(mailOptions, (err) => {
+        if (err) return res.status(500).json({ error: "Mail delivery failed" });
+        complaintsDb.update({ _id: complaintData._id }, { $set: { status: "Forwarded" } });
+        res.json({ success: true });
+    });
+});
+// Fetch a single complaint by its Database ID
+app.get('/api/complaints/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const complaint = await complaintsDb.findOne({ _id: id });
+        if (complaint) {
+            res.json(complaint);
+        } else {
+            res.status(404).json({ error: "Complaint not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
+// --- ADMIN API ---
 app.get('/api/users', async (req, res) => {
-    try {
-        const users = await usersDb.find({ role: "Student" }).sort({ createdAt: -1 });
-        res.json(users);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    const users = await usersDb.find({ role: "Student" });
+    res.json(users);
 });
 
-app.post('/api/update-status', async (req, res) => {
-    try {
-        const { id, status } = req.body;
-        await complaintsDb.update({ _id: id }, { $set: { status: status } });
-        console.log(`✅ Status Updated to ${status}`);
-        res.json({ message: "Status Updated" });
-    } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-app.delete('/api/complaints/:id', async (req, res) => {
-    try {
-        await complaintsDb.remove({ _id: req.params.id }, {});
-        res.json({ message: "Deleted" });
-    } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-app.delete('/api/users/:id', async (req, res) => {
-    try {
-        await usersDb.remove({ _id: req.params.id }, {});
-        res.json({ message: "User Deleted" });
-    } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-app.delete('/api/complaints', async (req, res) => {
-    try {
-        const files = fs.readdirSync(uploadDir);
-        for (const file of files) fs.unlinkSync(path.join(uploadDir, file));
-        await complaintsDb.remove({}, { multi: true });
-        res.json({ message: "All Deleted" });
-    } catch (error) { res.status(500).json({ error: error.message }); }
-});
-
-// --- START SERVER ---
-app.listen(3001, () => {
-    console.log("🚀 Server running at http://localhost:3001");
-});
+app.listen(3001, () => console.log("🚀 Server at http://localhost:3001"));

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Issues</title>
+    <title>Senior Faculty</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -159,13 +159,16 @@
         /* --- ISSUES LIST --- */
         .issues-list {
             flex: 1;
-            min-width: 300px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
         }
         .issues-list h2{ padding-bottom: 10px; }
         
         #feed-container {
-            overflow-y: auto; 
-            padding-right: 10px; 
+            max-height: 410px; 
+    overflow-y: auto; 
+    padding-right: 10px;
         }
 
         /* Custom Scrollbar Styling */
@@ -260,7 +263,6 @@
     </style>
 </head>
 <body>
-    
     <div id="success-popup">
         <i class="fas fa-check-circle"></i> 
         <span>Complaint Submitted Successfully!</span>
@@ -289,9 +291,12 @@
             <h2><i class="fas fa-bullhorn"></i>Submit Official Complaint</h2>
             <form id="issueForm">
                 <div class="input-group">
-                    <label>Category</label>
+                    <label>Senior Faculty Member</label>
                     <select id="category" required>
                         <option value="">Select Senior Faculty Member</option>
+                        <optgroup label="Chairman">
+                            <option value="Dr. Nadeem Iqbal">Dr. Nadeem Iqbal</option>
+                        </optgroup>
                         <optgroup label="Professors">
                             <option value="Dr. Sher Afzal">Dr. Sher Afzal</option>
                             <option value="Dr. Rahim Khan">Dr. Rahim Khan</option>
@@ -325,7 +330,7 @@
         </div>
 
         <div class="issues-list">
-            <h2>Recent Academic Reports</h2>
+            <h2>Recent Senior Faculty Reports</h2>
             <div id="feed-container"></div>
         </div>
     </div>
@@ -364,60 +369,63 @@
 
         document.addEventListener('DOMContentLoaded', loadFeed);
 
-        // --- NEW: FUNCTION TO SHOW POPUP ---
         function showSuccessPopup() {
             const popup = document.getElementById('success-popup');
-            // 1. Slide Down
             popup.classList.add('show');
 
-            // 2. Wait 2 seconds (2000ms), then Slide Up
             setTimeout(() => {
                 popup.classList.remove('show');
             }, 2000);
         }
 
         document.getElementById('issueForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.innerText = "Sending...";
-            submitBtn.disabled = true;
+    e.preventDefault();
+    
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.innerText = "Sending...";
+    submitBtn.disabled = true;
 
-            const subCategory = document.getElementById('category').value; 
-            const location = document.getElementById('location').value;
-            const rawDesc = document.getElementById('desc').value;
+    // Get the values from the form
+    const subCategory = document.getElementById('category').value; 
+    const nature = document.getElementById('nature').value;
+    const rawDesc = document.getElementById('desc').value;
 
-            const formattedCategory = `Academic: ${subCategory}`;
+    const formattedCategory = `Academic: ${subCategory}`;
 
-            const formData = new FormData();
-            formData.append('email', user.email);
-            formData.append('category', formattedCategory);
-            formData.append('location', location);
-            formData.append('description', rawDesc);
+    const payload = {
+        fullname: user.fullname, // Ensure this exists in your user object
+        email: user.email,
+        regNo: user.regNo || "N/A",
+        category: formattedCategory,
+        location: nature,
+        description: rawDesc
+    };
 
-            try {
-                const response = await fetch('http://localhost:3001/api/submit', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    // --- CHANGED: Call Popup instead of Alert ---
-                    showSuccessPopup();
-                    
-                    document.getElementById('issueForm').reset();
-                    loadFeed();
-                } else {
-                    alert("❌ Failed to submit. Server error.");
-                }
-            } catch (error) {
-                console.error(error);
-                alert("❌ Cannot connect to server. Is it running?");
-            }
-
-            submitBtn.innerText = "Submit Report";
-            submitBtn.disabled = false;
+    try {
+        const response = await fetch('http://localhost:3001/api/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Tell server we are sending JSON
+            },
+            body: JSON.stringify(payload), // Convert object to string
         });
+
+        if (response.ok) {
+            showSuccessPopup();
+            document.getElementById('issueForm').reset();
+            loadFeed();
+        } else {
+            const errorData = await response.json();
+            alert("❌ Error: " + (errorData.error || "Submission failed"));
+        }
+    } catch (error) {
+        console.error(error);
+        alert("❌ Cannot connect to server. Is it running?");
+    }
+
+    submitBtn.innerText = "Submit Report";
+    submitBtn.disabled = false;
+});
 
         async function loadFeed() {
             const feedContainer = document.getElementById('feed-container');
@@ -438,25 +446,26 @@
                     return;
                 }
 
-                filteredIssues.forEach(issue => {
-                    const dateObj = new Date(issue.date);
-                    const dateStr = dateObj.toLocaleDateString();
-                    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+filteredIssues.forEach(issue => {
+    const dateObj = new Date(issue.date);
+    const dateStr = dateObj.toLocaleDateString();
+    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                    const cardHTML = `
-                        <div class="issue-card">
-                            <div class="tag academic">${issue.category}</div>
-                            <h3>${issue.location}</h3>
-                            <p>${issue.description}</p>
-                            <div class="meta">
-                                <span><i class="fas fa-clock"></i> ${dateStr} at ${timeStr}</span>
-                                <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
-                            </div>
-                        </div>
-                    `;
-                    feedContainer.innerHTML += cardHTML;
-                });
+    const cleanCategory = issue.category.replace("Academic: ", " Senior Faculty:");
 
+    const cardHTML = `
+        <div class="issue-card">
+            <div class="tag academic">${cleanCategory}</div>
+            <h3>${issue.location}</h3>
+            <p>${issue.description}</p>
+            <div class="meta">
+                <span><i class="fas fa-clock"></i> ${dateStr} at ${timeStr}</span>
+                <span class="status ${issue.status.toLowerCase()}">${issue.status}</span>
+            </div>
+        </div>
+    `;
+    feedContainer.innerHTML += cardHTML;
+});
             } catch (error) {
                 console.error(error);
                 feedContainer.innerHTML = "<p style='color:red; text-align:center;'>Error loading data. Is Server running?</p>";
