@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Section</title>
+    <title>Technical Stop Complaint</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -108,7 +108,7 @@
             height: fit-content; /* Critical for calculating height */
         }
 
-        .form-wrapper h2 { margin-bottom: 20px; color: var(--dark); }
+        .form-wrapper h2 { margin-bottom: 20px; color: var(--dark);display: flex;gap: 10px; }
 
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
@@ -173,7 +173,8 @@
         .action-btn{ color: white; }
         .form-wrapper h2{ color: var(--dark); } 
 
-        .tag.other { background-color: #95a5a6; } /* Gray for IT */
+        .tag.hostel { background-color: #3498db; } /* Blue for Hostel */
+        .tag.other { background-color: #95a5a6; }
 
         .issue-card h3 { font-size: 1.1rem; margin-bottom: 5px; }
         .issue-card p { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
@@ -232,7 +233,7 @@
             .hero { height: 250px; }
             .hero h1 { font-size: 1.8rem; }
             .container { padding: 20px 5%; }
-            #feed-container { max-height: none !important; } 
+            #feed-container { max-height: none !important; } /* Reset scroll on mobile */
         }
     </style>
 </head>
@@ -249,46 +250,39 @@
     </header>
 
     <section class="hero">
-        <h1>Exam Section Complaint Portal</h1>
-        <p>Submit your exam-related issues quickly and securely.</p>
+        <h1>Technical Issue Complaint Portal</h1>
+        <p>Enhancing service efficiency through organized complaint tracking and responsive technical support.</p>
         <a href="#report" class="cta-button">File a Complaint Now</a>
     </section>
 
     <div class="container" id="report">
         
         <div class="form-wrapper">
-            <h2><i class="fas fa-bullhorn"></i> Report IT Issue</h2>
+            <h2><i class="fas fa-bullhorn"></i>Submit Official Complaint</h2>
             <form id="issueForm">
-<!-- Exam Issue Category -->
 <div class="input-group">
-    <label>Exam Issue</label>
+    <label>Select Clerk/Lab Assistant</label>
     <select id="category" required>
-        <option value="">Select Issue...</option>
-
-        <optgroup label="Result Issues">
-            <option value="Result not announced">Result not announced</option>
-            <option value="Incorrect marks entered">Incorrect marks entered</option>
-            <option value="Result withheld">Result withheld</option>
-            <option value="GPA calculation issue">GPA calculation issue</option>
+        <option value="">-- Choose Person --</option>
+        <optgroup label="Lab Assistant">
+            <option value="Mr. Aftab Ahmed Khan">Mr.Sadam(CS lab 1)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Ahmad(CS lab 2)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Tanveer(CS lab 3)</option>
+            <option value="Mr. Aftab Ahmed Khan">Mr. Ali khan(CS lab 4)</option>
+            <option value="other">other</option>
         </optgroup>
-        <optgroup label="Exam Schedule Issues">
-            <option value="Date sheet not available">Date sheet not available</option>
-            <option value="Clashing exam timings">Clashing exam timings</option>
-            <option value="Incorrect subject listed">Incorrect subject listed</option>
+        <optgroup label="Clerks">
+            <option value="Shaukat">Shaukat</option>
+            <option value="Shah Nawaz">Shah Nawaz</option>
+            <option value="Mir Wali">Mir Wali</option>
+            <option value="Rafi ullah">Rafi ullah</option>
+            <option value="other">other</option>
         </optgroup>
-        <optgroup label="Documentation Issues">
-            <option value="Transcript issue">Transcript issue</option>
-            <option value="Degree verification delay">Degree verification delay</option>
-            <option value="Duplicate document request">Duplicate document request</option>
-        </optgroup>
-
-        <option value="Other">Other Issue</option>
     </select>
 </div>
-
                 <div class="input-group">
-                    <label>Semester and Decipline</label>
-                    <input type="text" id="location" placeholder="What is your Department and Decipline?" required>
+                    <label>Nature of Problem </label>
+                    <input type="text" name="" id="">
                 </div>
                 <div class="input-group">
                     <label>Description</label>
@@ -299,15 +293,16 @@
         </div>
 
         <div class="issues-list">
-            <h2>Recent Exam Section Reports</h2>
+            <h2>Recent Technical Issue Reports</h2>
             <div id="feed-container"></div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2025 FixIt CS-AWKUM | Built for the Students of Mardan</p>
+        <p>&copy; 2025 FixIt AWKUM | Built for the Students of Mardan</p>
     </footer>
-<script>
+
+    <script>
         // --- 1. AUTHENTICATION CHECK ---
         const user = JSON.parse(localStorage.getItem('currentUser'));
         
@@ -354,8 +349,8 @@
             const location = document.getElementById('location').value;
             const rawDesc = document.getElementById('desc').value;
 
-            // IT SPECIFIC PREFIX
-            const formattedCategory = `IT: ${subCategory}`;
+            // HOSTEL SPECIFIC PREFIX
+            const formattedCategory = `Hostel: ${subCategory}`;
 
             // Prepare Data for Server
             const formData = new FormData();
@@ -387,23 +382,26 @@
             submitBtn.disabled = false;
         });
 
-        // --- 5. RENDER LIST FROM SERVER ---
+        // --- 5. RENDER LIST (ONLY MY COMPLAINTS) ---
         async function loadFeed() {
             const feedContainer = document.getElementById('feed-container');
-            feedContainer.innerHTML = "<p style='text-align:center;'>Loading reports...</p>";
+            feedContainer.innerHTML = "<p style='text-align:center;'>Loading your reports...</p>";
 
             try {
-                // Fetch ALL complaints from database
+                // FETCH ONLY THIS USER'S COMPLAINTS
                 const response = await fetch(`http://localhost:3001/api/my-complaints?email=${user.email}`);
-                const allComplaints = await response.json();
+                const myComplaints = await response.json();
+                
+                // Sort Newest First
+                myComplaints.reverse();
 
-                // FILTER: Show only IT issues
-                const filteredIssues = allComplaints.filter(issue => issue.category.startsWith('IT'));
+                // FILTER: Show only Hostel issues
+                const filteredIssues = myComplaints.filter(issue => issue.category.startsWith('Hostel'));
 
                 feedContainer.innerHTML = "";
 
                 if (filteredIssues.length === 0) {
-                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No IT reports found.</p>";
+                    feedContainer.innerHTML = "<p style='text-align:center; opacity:0.7;'>No hostel reports found.</p>";
                     adjustFeedHeight();
                     return;
                 }
@@ -417,7 +415,7 @@
 
                     const cardHTML = `
                         <div class="issue-card">
-                            <div class="tag other">${issue.category}</div>
+                            <div class="tag hostel">${issue.category}</div>
                             <h3>${issue.location}</h3>
                             <p>${issue.description}</p>
                             <div class="meta">

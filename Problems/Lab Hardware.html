@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cleanliness</title>
+    <title>Lab Hardware</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -260,21 +260,41 @@
         <div class="form-wrapper">
             <h2><i class="fas fa-bullhorn"></i> Submit Official Complaint</h2>
             <form id="issueForm">
+<!-- Hardware Category -->
+<div class="input-group">
+    <label>Hardware Category</label>
+    <select id="category" required>
+        <option value="">Select Hardware...</option>
+
+        <optgroup label="Computer System">
+            <option value="PC not turning on">PC not turning on</option>
+            <option value="Monitor no display">Monitor no display</option>
+            <option value="Keyboard not working">Keyboard not working</option>
+            <option value="Mouse not working">Mouse not working</option>
+            <option value="System very slow">System very slow</option>
+            <option value="System restarting automatically">System restarting automatically</option>
+        </optgroup>
+
+        <optgroup label="Network Issues">
+            <option value="No internet connection">No internet connection</option>
+            <option value="Slow internet">Slow internet</option>
+            <option value="LAN port not working">LAN port not working</option>
+            <option value="WiFi not connecting">WiFi not connecting</option>
+        </optgroup>
+
+        <optgroup label="Power Issues">
+            <option value="No electricity">No electricity</option>
+            <option value="UPS not working">UPS not working</option>
+            <option value="Damaged socket">Damaged socket</option>
+            <option value="Frequent shutdown">Frequent shutdown</option>
+        </optgroup>
+
+        <option value="Other">Other Issue</option>
+    </select>
+</div>
+
                 <div class="input-group">
-                    <label>Category</label>
-                    <select id="category" required>
-                        <option value="">Select Category...</option>
-                        <option value="Water Supply">Garbage overflow</option>
-                        <option value="Unclean washrooms">Unclean washrooms</option>
-                        <option value="Waste disposal issues">Waste disposal issues</option>
-                        <option value="Waste disposal issues">Waste disposal issues</option>
-                        <option value="Hostel cleanliness problems">Hostel cleanliness problems</option>
-                        <option value="Water spillage or leakage">Water spillage or leakage</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Location (e.g., Garden Campus, Dept of CS)</label>
+                    <label>Lab Location </label>
                     <input type="text" id="location" placeholder="Where is the problem?" required>
                 </div>
                 <div class="input-group">
@@ -286,7 +306,7 @@
         </div>
 
         <div class="issues-list">
-            <h2>Recent General Reports</h2>
+            <h2>Recent Lab Hardware Reports</h2>
             <div id="feed-container"></div>
         </div>
     </div>
@@ -440,6 +460,6 @@
         }
 
         window.addEventListener('resize', adjustFeedHeight);
-    </script>
+</script>
 </body>
 </html>
