@@ -313,7 +313,7 @@
 
     <header>
         <div class="logo">
-            <i class="fas fa-university"></i> FixIt <span>AWKUM</span>
+            <i class="fas fa-university"></i> FixIt <span>CS-AWKUM</span>
         </div>
         <nav>
             <i class="fas fa-moon" id="theme-btn" title="Toggle Dark Mode"></i>
@@ -327,16 +327,14 @@
         <p>Report any issues not covered in specific sections, including facilities, staff, or services.</p>
         <a href="#report" class="cta-button">File a Complaint Now</a>
     </section>
-
     <div class="container" id="report">
-        
         <div class="form-wrapper">
             <h2><i class="fas fa-bullhorn"></i> Report Hygiene Issue</h2>
             <form id="issueForm">
                 <div class="input-group">
                     <label>Category</label>
                     <select id="category" required>
-                        <option value="">Select Category...</option>
+                        <option value="">Select Category</option>
                         <option value="Washroom">Washroom</option>
                         <option value="Class Room">Classroom</option>
                         <option value="Computer Lab">Computer Lab</option>
@@ -367,7 +365,8 @@
     </div>
 
     <footer>
-        <p>&copy; 2025 FixIt AWKUM | Built for the Students of Mardan</p>
+        <div style="padding: 10px;"><p>Developed By <span style="font-weight: 800;">Muhammad Sudais</span></p></div>
+        <p>FixIt CS-AWKUM | Built for the Students of Computer Science</p>
     </footer>
 
 <script>
@@ -392,12 +391,7 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
     }
-
-    // =====================================================
     // TOAST NOTIFICATION SYSTEM
-    // Uses CSS transitions (not animations) so show/hide
-    // works reliably without keyframe conflicts
-    // =====================================================
     function showToast(type, title, message) {
         const container = document.getElementById('toast-container');
         const icons = {
@@ -516,14 +510,11 @@
                     </div>
                 `;
             });
-
             adjustFeedHeight();
-
         } catch (error) {
             feedContainer.innerHTML = "<p style='color:red; text-align:center;'>Error loading data.</p>";
         }
     }
-
     function adjustFeedHeight() {
         const formWrapper    = document.querySelector('.form-wrapper');
         const feedContainer  = document.getElementById('feed-container');

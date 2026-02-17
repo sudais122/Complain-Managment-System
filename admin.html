@@ -136,7 +136,7 @@
             align-items: center;
             font-size: 0.78rem;
             color: #64748b;
-            padding: 0 1.5rem 1rem;
+            padding: 1rem;
         }
         .age-legend span { display: flex; align-items: center; gap: 6px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -150,6 +150,7 @@
         <div class="sidebar-menu">
              <ul style="padding-left: 1rem;">
                 <li><a href="javascript:void(0)" id="nav-dashboard" class="active" onclick="switchView('dashboard', this)"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                <li><a href="javascript:void(0)" id="nav-pending" onclick="switchView('pending', this)"><i class="fas fa-clock"></i> <span>Pending Only</span></a></li>
                 <li><a href="javascript:void(0)" id="nav-underreview" onclick="switchView('underreview', this)"><i class="fas fa-spinner"></i> <span>Under Review</span></a></li>
                 <li><a href="javascript:void(0)" id="nav-resolved" onclick="switchView('resolved', this)"><i class="fas fa-check-circle"></i> <span>Resolved</span></a></li>
                 <li><a href="javascript:void(0)" id="nav-students" onclick="switchView('students', this)"><i class="fas fa-users"></i> <span>Students</span></a></li>
@@ -197,17 +198,17 @@
                     <div id="filter-container">
                         <select id="category-filter" class="filter-input" onchange="applyFilters()">
                             <option value="All">All Categories</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Hostel">Hostel</option>
-                            <option value="Academic">Academic</option>
-                            <option value="Technical">Technical</option>
-                            <option value="IT">IT Support</option>
+                            <option value="Senior Faculty">Senior Faculty</option>
+                            <option value="Junior Faculty">Junior Faculty</option>
+                            <option value="Technical Staff">Technical Staff</option>
+                            <option value="Lab Hardware">Lab Hardware</option>
+                            <option value="Exam Section">Exam Section</option>
+                            <option value="Technical Issues">Technical Issues</option>
+                            <option value="Hygiene">Hygiene</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
-
-                <!-- Age legend — only shown for non-resolved views -->
                 <div class="age-legend" id="age-legend">
                     <span><span class="legend-dot yellow"></span> Unresolved 10–15 days</span>
                     <span><span class="legend-dot red"></span> Unresolved 15+ days</span>
@@ -248,27 +249,35 @@
     }
 
     // 3. Filter Logic
-    function applyFilters() {
-        if (currentView === 'students') return;
+function applyFilters() {
+    if (currentView === 'students') return;
 
-        const category = document.getElementById('category-filter').value;
-        const filtered = allIssues.filter(issue => {
-            const matchesCat = (category === 'All') || (issue.category && issue.category.includes(category));
-            if (currentView === 'resolved')    return matchesCat && issue.status === 'Resolved';
-            if (currentView === 'underreview') return matchesCat && issue.status === 'Forwarded';
-            if (currentView === 'dashboard')   return matchesCat && (issue.status === 'Pending' || issue.status === 'Forwarded');
-            return matchesCat;
-        });
+    const selectedCategory = document.getElementById('category-filter').value;
+    
+    const filtered = allIssues.filter(issue => {
+        // Prepare the text for searching
+        const issueCat = (issue.category || "").toLowerCase();
+        const filterVal = selectedCategory.toLowerCase();
+        
+        // 1. Category Matching
+        // If "All", return true. Otherwise, check if the filter text exists inside the category string.
+        const matchesCat = (selectedCategory === 'All') || issueCat.includes(filterVal);
+        
+        // 2. Status Matching based on Sidebar View
+        let matchesStatus = false;
+        if (currentView === 'resolved') {
+            matchesStatus = (issue.status === 'Resolved');
+        } else if (currentView === 'underreview') {
+            matchesStatus = (issue.status === 'Forwarded');
+        } else if (currentView === 'dashboard') {
+            matchesStatus = (issue.status === 'Pending' || issue.status === 'Forwarded');
+        }
+        
+        return matchesCat && matchesStatus;
+    });
 
-        renderComplaintsTable(filtered);
-    }
-
-    // =====================================================
-    // TEST MODE SWITCH
-    // true  = uses MINUTES (yellow>=2min, red>5min)  <-- for testing right now
-    // false = uses DAYS    (yellow>=7d,   red>10d)   <-- for production
-    // Just flip this one variable when done testing!
-    // =====================================================
+    renderComplaintsTable(filtered);
+}
     function getAgeDays(issue) {
         const timestamp = issue.createdAt || new Date(issue.date).getTime();
         if (!timestamp) return 0;

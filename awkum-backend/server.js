@@ -272,11 +272,7 @@ app.get('/api/complaints', async (req, res) => {
 app.get('/api/complaints/:id', async (req, res) => {
     try {
         const id = req.params.id.trim();
-        console.log(`🔍 Fetching complaint with _id: "${id}"`);
-
         const complaint = await complaintsDb.findOne({ _id: id });
-        console.log(`📦 Result:`, complaint ? `Found #${complaint.complaintId}` : 'NOT FOUND');
-
         if (!complaint) {
             return res.status(404).json({ error: `Complaint with id "${id}" not found` });
         }
