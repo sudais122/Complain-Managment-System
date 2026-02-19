@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Resolution Portal | CS-AWKUM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #BD2426; --dark: #0f172a; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .reply-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; border-top: 5px solid var(--primary); }
+        .logo { text-align: center; margin-bottom: 20px; font-weight: 800; color: var(--primary); font-size: 1.5rem; }
+        
+        h2 { color: var(--dark); font-size: 1.2rem; margin-bottom: 10px; }
+        .info-badge { background: #fee2e2; color: var(--primary); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; margin-bottom: 20px; display: inline-block; }
+        
+        textarea { width: 100%; min-height: 150px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 1rem; margin-bottom: 20px; resize: none; transition: 0.3s; }
+        textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(189, 36, 38, 0.1); }
+        
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        .btn-submit:hover { background: #a11f21; }
+        
+        #success-msg { display: none; text-align: center; color: #10b981; }
+        .success-icon { font-size: 3rem; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="reply-card" id="form-container">
+        <div class="logo">FixIt CS-AWKUM</div>
+        <h2>Submit Resolution Message</h2>
+        <div class="info-badge" id="id-display">Loading Case...</div>
+        
+        <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+            Your response will be sent directly to the Admin Dashboard.
+        </p>
+
+        <textarea id="faculty-reply" placeholder="Explain how the issue was resolved or provide an update..."></textarea>
+        
+        <button class="btn-submit" onclick="submitReply()">
+            <i class="fas fa-paper-plane"></i> Send Resolution
+        </button>
+    </div>
+
+    <div class="reply-card" id="success-msg">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h2>Thank You!</h2>
+        <p>Your resolution has been successfully submitted and the Admin has been notified.</p>
+    </div>
+
+    <script>
+        // Get the Database ID from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const complaintDbId = urlParams.get('id');
+        
+        if (complaintDbId) {
+            document.getElementById('id-display').innerText = "Case ID: " + complaintDbId;
+        }
+
+        async function submitReply() {
+            const message = document.getElementById('faculty-reply').value.trim();
+            if (!message) { alert("Please type a message before submitting."); return; }
+
+            const btn = document.querySelector('.btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            try {
+                const response = await fetch(`http://localhost:3001/api/complaints/${complaintDbId}/faculty-reply`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ facultyReply: message })
+                });
+
+                if (response.ok) {
+                    document.getElementById('form-container').style.display = 'none';
+                    document.getElementById('success-msg').style.display = 'block';
+                } else {
+                    throw new Error('Failed to submit');
+                }
+            } catch (error) {
+                alert("Error: Could not connect to the server.");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Resolution';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -295,20 +295,37 @@ app.post('/api/forward-complaint', async (req, res) => {
             { $set: { status: "Forwarded", forwardedTo: teacherEmail } }
         );
         console.log('Status updated to Forwarded for complaint: ' + id);
+        const replyLink = `http://localhost:3001/faculty-reply.html?id=${id}&email=${encodeURIComponent(teacherEmail)}`;
 
         res.json({ success: true });
+
         const mailOptions = {
             from: '"FixIt CS-AWKUM" <khansb17798@gmail.com>',
             to: teacherEmail,
             subject: 'URGENT: Faculty Complaint Forwarded [#' + complaintData.complaintId + ']',
-            html: '<div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px;">'
-                + '<h2 style="color: #BD2426;">FixIt CS-AWKUM Official Notice</h2>'
-                + '<p>A student complaint has been forwarded to you for resolution.</p><hr>'
-                + '<p><strong>Complaint ID:</strong> #' + complaintData.complaintId + '</p>'
-                + '<p><strong>Location/Nature:</strong> ' + complaintData.location + '</p>'
-                + '<p><strong>Details:</strong> ' + complaintData.description + '</p>'
-                + (adminNote ? '<p style="background:#fdf2f2;padding:10px;border-left:4px solid #BD2426;"><strong>Admin Note:</strong> ' + adminNote + '</p>' : '')
-                + '</div>'
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                    <h2 style="color: #BD2426;">FixIt CS-AWKUM Official Notice</h2>
+                    <p>A student complaint has been forwarded to you for resolution.</p>
+                    <hr style="border:none; border-top:1px solid #eee;">
+                    <p><strong>Complaint ID:</strong> #${complaintData.complaintId}</p>
+                    <p><strong>Location/Nature:</strong> ${complaintData.location}</p>
+                    <p><strong>Details:</strong> ${complaintData.description}</p>
+                    
+                    ${adminNote ? `<p style="background:#fdf2f2; padding:10px; border-left:4px solid #BD2426;"><strong>Admin Note:</strong> ${adminNote}</p>` : ''}
+                    
+                    <div style="margin-top: 30px; text-align: center;">
+                        <p style="font-size: 14px; color: #666;">To provide your resolution or update the status, please click the button below:</p>
+                        <a href="${replyLink}" 
+                           style="background-color: #BD2426; color: white; padding: 14px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                           Submit Resolution Message
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 12px; color: #999; margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
+                        This is an automated message from the FixIt CS-AWKUM Portal. Please do not reply directly to this email.
+                    </p>
+                </div>`
         };
 
         transporter.sendMail(mailOptions, (err) => {
